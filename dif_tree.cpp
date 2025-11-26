@@ -48,8 +48,8 @@ static void NodeDtor (tNode* ref_node) {
 
 //=================================================================================================================================================
 
-tTreeError DerCtor(tDerivator* der) {       //WARNING - как быть с конструктором?
-    assert(der != NULL);                    //Чем заполнять нулевую ноду?
+tTreeError DerCtor(tDerivator* der) {       //WARNING - как быть с конструктором:
+    assert(der != NULL);                    //Чем заполнять нулевую/фиктивную ноду?
 
     tData init_data;
     init_data.code = kPlus;
@@ -57,19 +57,6 @@ tTreeError DerCtor(tDerivator* der) {       //WARNING - как быть с ко�
 
     der->constants = (double*)calloc(kConstsCount + 1, sizeof(double)); //+1 caused by indexation
     der->size = kInitialDerivatorSize;
-
-    der->funcs = (math_func*)calloc(kOperationsAmount + 1, sizeof(math_func));  //+1 Caused by indexation
-
-    der->funcs[kPlus]  = PlusOp;
-    der->funcs[kMinus] = MinusOp;
-    der->funcs[kMul]   = MulOp;
-    der->funcs[kDiv]   = DivOp;
-    der->funcs[kPow]   = PowOp;
-    der->funcs[kSin]   = SinOp;
-    der->funcs[kCos]   = CosOp;
-    der->funcs[kExp]   = ExpOp;
-    der->funcs[kTg]    = TgOp;
-    der->funcs[kCtg]   = CtgOp;
 
     return kNoErrors;
 }
@@ -81,7 +68,6 @@ tTreeError DerDtor (tDerivator* der) {
 
     NodeDtor(der->root);
     der->size = kPoisonValue;
-    free(der->funcs);
     free(der->constants);
 
     return kNoErrors;
@@ -89,6 +75,23 @@ tTreeError DerDtor (tDerivator* der) {
 
 //=================================================================================================================================================
 
+tNode* CopyNode(tNode* source) {
+    if (source == NULL) return NULL;
 
+    tNode* copy_node = CreateNode(source->type, source->data, NULL);
+
+    if(copy_node == NULL) {
+        ERRPRINT(allocation)
+        return NULL;
+    }
+
+    copy_node->left = CopyNode(source->left);
+    copy_node->right = CopyNode(source->right);
+
+    if(copy_node->left != NULL) copy_node->left->parent = copy_node;
+    if(copy_node->right != NULL) copy_node->right->parent = copy_node;
+
+    return copy_node;
+}
 
 //=================================================================================================================================================

@@ -67,7 +67,7 @@ tNode* ReadNode(tNode* parent_node, int* index, char* buffer) {
         ret_node->right = ReadNode(ret_node, index, buffer);
 
         if (buffer[*index] != kNodeEnd) {
-            ERRPRINT(kNodeEnd expected)     //WARNING Как напечатать ')'
+            ERRPRINT(kNodeEnd expected)
         }
         (*index)++;
 
@@ -100,7 +100,7 @@ tNode* ReadNode(tNode* parent_node, int* index, char* buffer) {
 //=================================================================================================================================================
 //=================================================================================================================================================
 //=================================================================================================================================================
-//Как контролировать выход за границы массива?
+//Как контролировать выход за границы массива? + очень много утечек
 static void GetNodeSettings(tNode* node, int* index, char* buffer) {
 
     int flag_symb = (int)buffer[*index];
@@ -156,7 +156,6 @@ static void SettingForOperation(tNode* node, int* index, char* buffer) {
     int flag = OperationCode(index, buffer);
     if (flag == kPoisonValue) {
         node->data.code = 0;
-        // fprintf(stderr, "Error: unknown operation at index - [%d]", *index); //DEBUG - не нужно
         return;
     }
     node->data.code = flag;

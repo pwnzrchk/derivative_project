@@ -43,7 +43,12 @@ enum tOpCode {
     kCos   = 7,
     kExp   = 8,
     kTg    = 9,
-    kCtg  = 10
+    kCtg  = 10,
+    kLn   = 11,
+    kSh   = 12,
+    kCh   = 13,
+    kTgh  = 14,
+    kCtgh = 15  //TODO Добавить арк функции
 };
 
 enum tNodeType {
@@ -53,8 +58,6 @@ enum tNodeType {
 };
 
 //=================================================================================================================================================
-
-typedef double (*math_func)(double first_value, double second_value);
 
 typedef union {
     double value;
@@ -74,7 +77,6 @@ typedef struct {
     tNode* root;
     int size;
     double* constants;
-    math_func* funcs;
 } tDerivator;
 
 //=================================================================================================================================================
@@ -84,7 +86,7 @@ static const int kPoisonValue = (int)0xDEADBEEF;
 static const int kConstsCount = 10;
 static const int kMaxNumberSize = 100;
 static const int kVariablesAmount = 3;
-static const int kOperationsAmount = 10;
+static const int kOperationsAmount = 15;
 static const int ONE = 1;
 
 static const char kNodeBegin = '(';
@@ -97,6 +99,7 @@ static const char kNilBegin = 'n';
 tTreeError DerCtor(tDerivator* der);
 tTreeError DerDtor(tDerivator* der);
 
+tNode* CopyNode  (tNode* source);
 tNode* CreateNode(tNodeType type, tData data, tNode* parent);
 
 //=================================================================================================================================================

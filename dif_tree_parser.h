@@ -26,12 +26,3 @@ char* LoweringString(char* string, size_t len);
 
 
 #endif // DIF_TREE_PARSER_H
-
-//TODO - сделать макрос
-/*
-if (buffer_for_number == NULL) {
-        fprintf(stderr, "Error: allocation in %s at %s:%d\n",
-                __FUNCTION__, __FILE__, __LINE__);
-        return;
-    }
-*/
