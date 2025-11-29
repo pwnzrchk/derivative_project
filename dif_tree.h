@@ -24,7 +24,9 @@ enum tTreeError {
     kFreadError   = 5,
     kUnkCmd       = 6,
     kScanfError   = 7,
-    kUnkVar       = 8
+    kUnkVar       = 8,
+    kOneArgWrongCode = 9,
+    kTwoArgWrongCode = 10
 };
 
 enum tConst {
@@ -101,6 +103,11 @@ tTreeError DerDtor(tDerivator* der);
 
 tNode* CopyNode  (tNode* source);
 tNode* CreateNode(tNodeType type, tData data, tNode* parent);
+
+char  VariableDecoder (int code);   //WARNING - const char?
+char* OperationDecoder(int code);
+
+bool IsBiargument(int code);
 
 //=================================================================================================================================================
 

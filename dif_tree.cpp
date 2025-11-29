@@ -52,7 +52,7 @@ tTreeError DerCtor(tDerivator* der) {       //WARNING - как быть с ко�
     assert(der != NULL);                    //Чем заполнять нулевую/фиктивную ноду?
 
     tData init_data;
-    init_data.code = kPlus;
+    init_data.code = kMul;
     der->root = CreateNode(kOperation, init_data, NULL);    //Как использовать фиктивную ноду?
 
     der->constants = (double*)calloc(kConstsCount + 1, sizeof(double)); //+1 caused by indexation
@@ -92,6 +92,43 @@ tNode* CopyNode(tNode* source) {
     if(copy_node->right != NULL) copy_node->right->parent = copy_node;
 
     return copy_node;
+}
+
+//=================================================================================================================================================
+
+char* OperationDecoder(int code) {      //TODO - Доделать
+    if (code < 0 || code > kOperationsAmount) {
+        fprintf(stderr, "Error: incorrect code was given to OperationDecoder\n");
+        return NULL;
+    }
+
+    char* op_storage[] = {
+        "+", "-", "*", "/", "^", "sin",
+        "cos", "exp", "tg", "ctg", "ln",
+        "sh", "ch", "tgh", "ctgh"
+    };
+    return op_storage[code - 1]; //-1 caused by indexation
+}
+
+//=================================================================================================================================================
+
+char VariableDecoder(int code) {
+    if (code < 0 || code > kVariablesAmount) {
+        fprintf(stderr, "Error: incorrect code was given to VariableDecoder\n");
+        return '\0';                                                    //WARNING - хуйня или нет?
+    }
+
+    const char var_storage[] = {
+        'x', 'y', 'z'
+    };
+    return var_storage[code - 1];
+}
+
+//=================================================================================================================================================
+
+bool IsBiargument(int code) {
+    if (code >= kPlus && code <= kPow) return true;
+    else return false;
 }
 
 //=================================================================================================================================================

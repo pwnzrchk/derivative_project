@@ -251,9 +251,17 @@ static tNode* DiffDiv(tNode* node) {
 }
 
 static tNode* DiffPow(tNode* node) {        //Переделать TODO
-    tNode* pow_arg  = POW(cL, cR);
-    tNode* main_dif = MUL(pow_arg, LN(cL));
-    return MUL(main_dif, dR);
+    tNode* pow_mul  = POW(cL, cR);
+
+    tNode* frst_smmnd = MUL(LN(cL), dR);
+
+    tNode* reverse_r = POW(cL, NUM(-1));
+    tNode* scnd = MUL(reverse_r, cR);
+    tNode* scnd_smmnd = MUL(scnd, dL);
+
+    tNode* sum = ADD(frst_smmnd, scnd_smmnd);
+
+    return MUL(pow_mul, sum);
 }
 
 static tNode* DiffSin(tNode* node) {

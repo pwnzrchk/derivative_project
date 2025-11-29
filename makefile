@@ -17,7 +17,7 @@ BUILD_DIR = build
 
 TARGET = derivator
 
-SRCS = main.cpp dif_tree.cpp dif_tree_parser.cpp math_func.cpp
+SRCS = main.cpp dif_tree.cpp dif_tree_parser.cpp math_func.cpp graphviz_log.cpp tex_dump.cpp dif_optimizator.cpp
 
 OBJS = $(addprefix $(BUILD_DIR)/, $(SRCS:.cpp=.o))
 

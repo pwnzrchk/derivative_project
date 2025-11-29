@@ -1,0 +1,28 @@
+digraph DifDump {
+	graph [bgcolor = "#0e1017", rankdir=TB, ranksep=1.2, nodesep=0.8];
+	node [shape=record, style="rounded,filled", fillcolor="#FAEBD7"];
+	edge [fontsize=18];
+
+	Node0x604000000790 [shape = Mrecord, style = "rounded", color = "#FFEBAD", fontcolor = "#C2ADFF", label= "{ {<p_parent> parent: 0x0} | {address: 0x604000000790} | {type: \"Operation\"} | { data: \"+\" } | {<p_left> left: 0x604000000610 | <p_right> right: 0x604000000810} } "];
+	Node0x604000000610 [shape = Mrecord, style = "rounded", color = "#FFEBAD", fontcolor = "#C2ADFF", label= "{ {<p_parent> parent: 0x604000000790} | {address: 0x604000000610} | {type: \"Operation\"} | { data: \"*\" } | {<p_left> left: 0x6040000007d0 | <p_right> right: 0x6040000005d0} } "];
+	Node0x6040000007d0 [shape = Mrecord, style = "rounded", color = "#C2FFAD", fontcolor = "#FFADEB", label= "{ {<p_parent> parent: 0x0} | {address: 0x6040000007d0} | {type: \"Value\"} | { data: 2.00 } | {<p_left> left: 0x0 | <p_right> right: 0x0} } "];
+	Node0x6040000005d0 [shape = Mrecord, style = "rounded", color = "#C2FFAD", fontcolor = "#FFADEB", label= "{ {<p_parent> parent: 0x604000000610} | {address: 0x6040000005d0} | {type: \"Value\"} | { data: 6.50 } | {<p_left> left: 0x0 | <p_right> right: 0x0} } "];
+	Node0x604000000810 [shape = Mrecord, style = "rounded", color = "#C2FFAD", fontcolor = "#FFADEB", label= "{ {<p_parent> parent: 0x0} | {address: 0x604000000810} | {type: \"Value\"} | { data: 0.00 } | {<p_left> left: 0x0 | <p_right> right: 0x0} } "];
+
+		Node0x604000000790:p_left->Node0x604000000610 [label="Left", arrowhead=normal,fontcolor="#191970", fontname="Arial", color="#191970", style=bold, weight = 1];
+		Node0x604000000610:p_parent->Node0x604000000790:p_left [label="parent", style=dashed, constrain=false, arrowhead=normal,fontcolor="#006400", fontname="Times New Roman", color="#006400"];
+
+		Node0x604000000610:p_left->Node0x6040000007d0 [label="Left", arrowhead=normal,fontcolor="#191970", fontname="Arial", color="#191970", style=bold, weight = 1];
+		Node0x6040000007d0:p_parent->Node0x604000000610:p_left [label="parent", style=dashed, constrain=false, arrowhead=normal,fontcolor="#006400", fontname="Times New Roman", color="#006400"];
+
+
+		Node0x604000000610:p_right->Node0x6040000005d0 [label="Right", arrowhead=normal,fontcolor="#800000", fontname="Arial", color="#800000", style=bold, weight = 1];
+		Node0x6040000005d0:p_parent->Node0x604000000610:p_right [label="parent", arrowhead=normal,fontcolor="#006400", fontname="Times New Roman", color="#006400", style=dashed, constrain = false];
+
+
+
+		Node0x604000000790:p_right->Node0x604000000810 [label="Right", arrowhead=normal,fontcolor="#800000", fontname="Arial", color="#800000", style=bold, weight = 1];
+		Node0x604000000810:p_parent->Node0x604000000790:p_right [label="parent", arrowhead=normal,fontcolor="#006400", fontname="Times New Roman", color="#006400", style=dashed, constrain = false];
+
+
+}

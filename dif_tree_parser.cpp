@@ -11,9 +11,6 @@ static void SettingForConst(tNode* node, int* index, char* buffer);
 static int OperationCode(int* index, char* buffer);
 static int VariableCode(int* index, char* buffer);
 
-static const char* OperationDecoder(int code);
-static char VariableDecoder(int code);
-
 static bool IsNull(int* index, const char* buffer);
 static long long FileSize(FILE* file);
 
@@ -167,7 +164,7 @@ static void SettingForOperation(tNode* node, int* index, char* buffer) {
 //=================================================================================================================================================
 //=================================================================================================================================================
 
-static int OperationCode(int* index, char* buffer) {
+static int OperationCode(int* index, char* buffer) {        //TODO - добавить оперции, глобальный массив, в другой файл.
     const char* op_storage[] = {
         "+", "-", "*", "/", "^", "sin",
         "cos", "exp", "tg", "ctg"
@@ -240,38 +237,9 @@ static bool IsNull(int* index, const char* buffer) {
 }
 
 //=================================================================================================================================================
-//=================================================================================================================================================
-//=================================================================================================================================================
 
-static const char* OperationDecoder(int code) {
-    if (code < 0 || code > kOperationsAmount) {
-        fprintf(stderr, "Error: incorrect code was given to OperationDecoder\n");
-        return NULL;
-    }
 
-    const char* op_storage[] = {
-        "+", "-", "*", "/", "^", "sin",
-        "cos", "exp", "tg", "ctg"
-    };
-    return op_storage[code - 1]; //-1 caused by indexation
-}
 
-//=================================================================================================================================================
-
-static char VariableDecoder(int code) {
-    if (code < 0 || code > kVariablesAmount) {
-        fprintf(stderr, "Error: incorrect code was given to VariableDecoder\n");
-        return '\0';                                                    //WARNING - хуйня или нет?
-    }
-
-    const char var_storage[] = {
-        'x', 'y', 'z'
-    };
-    return var_storage[code - 1];
-}
-
-//=================================================================================================================================================
-//=================================================================================================================================================
 //=================================================================================================================================================
 
 tTreeError PrintNode (tNode* node, FILE* printing_file, int* depth) {
