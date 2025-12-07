@@ -13,6 +13,11 @@
 #define ERRPRINT(x) fprintf(stderr, "Error: " #x " in %s at %s:%d\n", \
                             __func__, __FILE__, __LINE__);
 
+#define ERPRINT(x) fprintf(stderr, "%s\n(Function:[%s] at [%s]:[%d])\n\n", x, \
+                                                 __func__, __FILE__, __LINE__)
+
+#define EPSILON 1e-7
+
 //=================================================================================================================================================
 
 enum tTreeError {
@@ -29,7 +34,7 @@ enum tTreeError {
     kTwoArgWrongCode = 10
 };
 
-enum tConst {
+enum tConst {       //FIXME - отдельное поле для кода и переменной
     kX = 1,
     kY = 2,
     kZ = 3
@@ -50,7 +55,15 @@ enum tOpCode {
     kSh   = 12,
     kCh   = 13,
     kTgh  = 14,
-    kCtgh = 15  //TODO Добавить арк функции
+    kCtgh = 15,
+    kArcSin = 16,
+    kArcCos = 17,
+    kArcTg  = 18,
+    kArcCtg = 19,
+    kArcSh  = 20,
+    kArcCh  = 21,
+    kArcTh  = 22,
+    kArcCth = 23
 };
 
 enum tNodeType {
@@ -88,7 +101,7 @@ static const int kPoisonValue = (int)0xDEADBEEF;
 static const int kConstsCount = 10;
 static const int kMaxNumberSize = 100;
 static const int kVariablesAmount = 3;
-static const int kOperationsAmount = 15;
+static const int kOperationsAmount = 23;
 static const int ONE = 1;
 
 static const char kNodeBegin = '(';
@@ -101,13 +114,18 @@ static const char kNilBegin = 'n';
 tTreeError DerCtor(tDerivator* der);
 tTreeError DerDtor(tDerivator* der);
 
+void NodeDtor (tNode* ref_node);
+
 tNode* CopyNode  (tNode* source);
 tNode* CreateNode(tNodeType type, tData data, tNode* parent);
 
-char  VariableDecoder (int code);   //WARNING - const char?
-char* OperationDecoder(int code);
+tDerivator* CopyDer(tDerivator* src_der);
+
+char  VariableDecoder (int code);
+const char* OperationDecoder(int code);
 
 bool IsBiargument(int code);
+bool CompareDouble(double first, double second);
 
 //=================================================================================================================================================
 

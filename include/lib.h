@@ -1,14 +1,17 @@
-#ifndef DIF_OPTIMIZATOR_H
-#define DIF_OPTIMIZATOR_H
+#ifndef LIB_H
+#define LIB_H
 
+//=================================================================================================================================================
 
 #include "dif_tree.h"
+#include "math_func.h"
+#include "dif_optimizator.h"
+#include "parser.h"
+#include "functional.h"
+#include "tex_dump.h"
+#include "graphviz_log.h"
+#include "dif_tree_parser.h"
 
 //=================================================================================================================================================
 
-tTreeError TreeOptor(tDerivator* der);
-
-//=================================================================================================================================================
-
-
-#endif // DIF_OPTIMIZATOR_H
+#endif // LIB_H

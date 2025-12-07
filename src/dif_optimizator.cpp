@@ -1,0 +1,349 @@
+#include "dif_optimizator.h"
+#include "math_func.h"
+
+//=================================================================================================================================================
+
+static tTreeError ReplaceNode(tNode* source, tNode* replacement);
+static size_t DerivatorSize(tDerivator* der);
+static size_t SubTreeSize(tNode* node);
+
+static void ConstFolding(tDerivator* der, tNode* node);
+static void PowFolding(tDerivator* der, tNode* node);
+static void MulFolding(tDerivator* der, tNode* node);
+static void PlusMinusFolding(tDerivator* der, tNode* node);
+static void DivFolding(tDerivator* der, tNode* node);
+
+static void TreeSize(tNode* node, size_t* curr_size);
+static tNode* Optor (tDerivator* der, tNode* node);
+
+static bool IsNodesEqual(tNode* first, tNode* second);
+static bool EqualConstValue(tNode* node, double value);
+
+static bool IsOperation(tNode* node);
+
+// static bool IsVariable(tNode* node);
+
+static bool IsConst(tNode* node);
+
+//=================================================================================================================================================
+// DRAFT
+// tTreeError NodeOptor(tNode* node) {
+//     assert(node != NULL);
+//
+//     do {
+//         size_before = SubTreeSize(node);
+//         Optor
+//     } while
+//
+// }
+//
+//=================================================================================================================================================
+
+tTreeError DerOptor(tDerivator* der) {
+    assert(der != NULL);
+
+    if(der->root->left == NULL) return kNullPointer;
+    size_t size_before = 0, size_after = 0;
+
+    do {
+        size_before = DerivatorSize(der);
+        Optor(der, der->root->left);
+        size_after  = DerivatorSize(der);
+
+    } while(size_before != size_after);
+    return kNoErrors;
+}
+
+//=================================================================================================================================================
+// DRAFT
+// tTreeError TreeOptor(tDerivator* der) { // FIXME - сравнивать сайз
+//     assert(der != NULL);
+//
+//     if(der->root->left == NULL) return kNullPointer;
+//
+//     tNode* flag_node = CopyNode(der->root->left);
+//     if (flag_node == NULL) return kNullPointer;
+//
+//     while(!IsNodesEqual(Optor(der, der->root->left), flag_node)) {
+//         flag_node = CopyNode(der->root->left);
+//         if (flag_node == NULL) return kNullPointer;
+//     }
+//     NodeDtor(flag_node);
+//
+//     return kNoErrors;
+// }
+
+//=================================================================================================================================================
+// DRAFT
+// static bool IsVariable(tNode* node) {
+//     assert(node != NULL);
+//
+//     if(node == NULL) return false;
+//
+//     return node->type == kVariable;
+// }
+
+static bool IsOperation(tNode* node) {
+    assert(node != NULL);
+
+    if(node == NULL) return false;
+
+    return node->type == kOperation;
+}
+
+static bool IsConst(tNode* node) {
+    assert(node != NULL);
+
+    if (node == NULL) return false;
+
+    return node->type == kConst;
+}
+
+//=================================================================================================================================================
+
+static tNode* Optor(tDerivator* der, tNode* node) {
+    assert(der != NULL);
+
+    if (node == NULL) return NULL;
+
+    Optor(der, node->left);
+    Optor(der, node->right);
+
+    ConstFolding(der, node);
+    if (IsOperation(node) && node->data.code  == kPow) PowFolding(der, node);
+    if (IsOperation(node) && node->data.code  == kMul) MulFolding(der, node);
+    if (IsOperation(node) && (node->data.code == kPlus || node->data.code == kMinus)) PlusMinusFolding(der, node);
+    if (IsOperation(node) && node->data.code  == kDiv) DivFolding(der, node);
+
+    return node;
+}
+
+//=================================================================================================================================================
+
+static tTreeError ReplaceNode(tNode* source, tNode* replacement) { //WARNING - Тут не работает Caller-allocates
+    assert(source != NULL);                                        //Не caller удаляет замененную ноду
+    assert(replacement != NULL);
+
+    if (source == NULL)         return kNullPointer;
+    if (replacement == NULL)    return kNullPointer;
+    if (source->parent == NULL) return kNullPointer;
+
+    if (replacement->parent == source) {
+        if (source->left == replacement)  source->left = NULL;
+        if (source->right == replacement) source->right = NULL;
+    }
+
+    if (source == source->parent->left) {
+        source->parent->left = replacement;
+    } else {
+        source->parent->right = replacement;
+    }
+    replacement->parent = source->parent;
+
+    source->left = NULL;
+    source->right = NULL;
+    source->parent = NULL;
+
+    // NodeDtor(source);         // How to avoid memory leak
+    // source = replacement;
+
+    return kNoErrors;
+}
+
+//=================================================================================================================================================
+
+static void ConstFolding(tDerivator* der, tNode* node) {
+    assert(der != NULL);
+    assert(node != NULL);
+
+    if(node->left == NULL || node->right == NULL) return;
+
+    if (IsConst(node->left) && IsConst(node->right)) {
+        double value = NodeCaltor(der, node);
+        if (ReplaceNode(node, NUM(value)) != kNoErrors) ERRPRINT(replacing nodes in folding)
+    } else if (IsConst(node->left) && node->type == kOperation && !IsBiargument(node->data.code)) {
+        double value = NodeCaltor(der, node);
+        if (ReplaceNode(node, NUM(value)) != kNoErrors) ERRPRINT(replacing nodes in folding)
+    }
+}
+
+//=================================================================================================================================================
+
+static bool EqualConstValue(tNode* node, double value) {
+    assert(node != NULL);
+    assert(IsConst(node) != false);
+
+    if (IsConst(node) == false) {
+        ERRPRINT(wrong input given in compaaring kConst value)
+        return false;
+    }
+
+    return CompareDouble(node->data.value, value);
+}
+
+static void PowFolding(tDerivator* der, tNode* node) {
+    assert(der != NULL);
+    assert(node != NULL);
+
+    assert(node->left != NULL);
+    assert(node->right != NULL);        // Ассерты выключатся в релиз режиме, поэтому ставим ешё проверку
+
+    if (node->left == NULL || node->right == NULL) {
+        ERRPRINT(null-pointer in pow folding)
+        return;
+    }
+
+    bool is_left_1  = IsConst(node->left)  && EqualConstValue(node->left, 1);
+    bool is_right_1 = IsConst(node->right) && EqualConstValue(node->right, 1);
+
+    bool is_right_0 = IsConst(node->right) && EqualConstValue(node->right, 0);
+    bool is_left_0  = IsConst(node->left)  && EqualConstValue(node->left, 0);
+
+
+    if (is_right_1) {
+        ReplaceNode(node, node->left);
+    } else if (is_left_1) {
+        ReplaceNode(node, NUM(1));
+    } else if(is_right_0) {
+        ReplaceNode(node, NUM(1));
+    } else if (is_left_0) {
+        ReplaceNode(node, NUM(0));
+    }
+    // Как free(node)?
+}
+
+//=================================================================================================================================================
+
+static void MulFolding(tDerivator* der, tNode* node) {
+    assert(der != NULL);
+    assert(node != NULL);
+
+    if(node->left == NULL || node->right == NULL) return;
+
+    bool is_left_1 = IsConst(node->left)   && EqualConstValue(node->left, 1);
+    bool is_right_1 = IsConst(node->right) && EqualConstValue(node->right, 1);
+
+    bool is_left_0 = IsConst(node->left) && EqualConstValue(node->left, 0);
+    bool is_right_0 = IsConst(node->right) && EqualConstValue(node->right, 1);
+
+
+    if (is_left_1 == true) {
+        if (ReplaceNode(node, node->right) != kNoErrors) ERRPRINT(replacing nodes in mul_folding)
+    } else if (is_right_1 == true) {
+        if (ReplaceNode(node, node->left) != kNoErrors) ERRPRINT(replacing nodes in mul_folding)
+    } else if (is_left_0 == true || is_right_0 == true) {
+        if (ReplaceNode(node, NUM(0)) != kNoErrors) ERRPRINT(replacing nodes in mul_folding)
+    }
+}
+
+//=================================================================================================================================================
+
+static void PlusMinusFolding(tDerivator* der, tNode* node) {
+    assert(der != NULL);
+    assert(node != NULL);
+
+    if (node->left  == NULL || node->right == NULL) {
+        ERRPRINT(nullptr in plusminus folding)
+        return;
+    }
+
+    bool is_left_0 = IsConst(node->left) && EqualConstValue(node->left, 0);
+    bool is_right_0 = IsConst(node->right) && EqualConstValue(node->right, 0);
+
+    if (is_left_0 == true) {
+        if (ReplaceNode(node, node->right) != kNoErrors) ERRPRINT(replacing nodes in plusminus_folding)
+    } else if(is_right_0 == true) {
+        if (ReplaceNode(node, node->left) != kNoErrors) ERRPRINT(replacing nodes in plus minus_folding)
+    }
+}
+
+//=================================================================================================================================================
+
+static void DivFolding(tDerivator* der, tNode* node) {
+    assert(der != NULL);
+    assert(node != NULL);
+
+    if (node->left  == NULL || node->right == NULL) {
+        ERRPRINT(null-pointer in div folding)
+        return;
+    }
+
+    bool is_left_1  = IsConst(node->left) && EqualConstValue(node->left, 1);
+    bool is_right_1 = IsConst(node->right) && EqualConstValue(node->right, 1);
+
+    if (is_right_1 == true) {
+        if (ReplaceNode(node, node->left) != kNoErrors) ERRPRINT(replacing nodes in div_folding)
+    } else if (is_left_1 == true) {
+        if (ReplaceNode(node, node->right) != kNoErrors) ERRPRINT(replacing nodes in div_folding)
+    }
+}
+
+//=================================================================================================================================================
+// DRAFT
+// bool EqualTree(tDerivator* der1, tDerivator* der2) {
+//     if (IsNodesEqual(der1->root->left, der2->root->left)) return true;
+//     return false;
+// }
+//
+//=================================================================================================================================================
+
+static bool IsNodesEqual(tNode* first, tNode* second) {
+
+    if(first == NULL && second == NULL) return true;
+    if(first == NULL || second == NULL) return false;
+
+    if(first->type != second->type) return false;
+
+    bool is_data_equal = false;
+
+    switch(first->type) {
+        case kConst:
+        is_data_equal = EqualConstValue(first, second->data.value); // Сделать нормальную функция сравния double
+        break;
+
+        case kVariable:
+        case kOperation:
+            is_data_equal = (first->data.code == second->data.code);
+            break;
+
+        default:
+            return false;
+    }
+
+    if (is_data_equal == false) return false;
+
+    return IsNodesEqual(first->left, second->left) && IsNodesEqual(first->right, second->right);
+}
+
+//=================================================================================================================================================
+
+static void TreeSize(tNode* node, size_t* curr_size) {
+    assert(curr_size);
+    assert(node);
+
+    (*curr_size)++;
+    if (node->left != NULL)  TreeSize(node->left, curr_size);
+    if (node->right != NULL) TreeSize(node->right, curr_size);
+
+}
+
+//=================================================================================================================================================
+
+static size_t DerivatorSize(tDerivator* der) {
+    assert(der);
+
+    size_t counter = 0;
+    TreeSize(der->root->left, &counter);
+
+    return counter;
+}
+
+//=================================================================================================================================================
+
+static size_t SubTreeSize(tNode* node) {
+    assert(node);
+    size_t counter = 0;
+    TreeSize(node, &counter);
+
+    return counter;
+}

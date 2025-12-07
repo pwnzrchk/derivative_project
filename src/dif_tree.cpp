@@ -1,7 +1,7 @@
 #include <string.h>
 #include "dif_tree.h"
 #include "math_func.h"
-
+// TODO - техать нормально, разнести все хедеры в отдельную папку, привести в порядок make
 //=================================================================================================================================================
 
 tNode* CreateNode(tNodeType type, tData data, tNode* parent) {
@@ -29,7 +29,7 @@ tNode* CreateNode(tNodeType type, tData data, tNode* parent) {
 
 //=================================================================================================================================================
 
-static void NodeDtor (tNode* ref_node) {
+void NodeDtor (tNode* ref_node) {
     if(ref_node == NULL) return;
 
     NodeDtor(ref_node->left);
@@ -48,12 +48,12 @@ static void NodeDtor (tNode* ref_node) {
 
 //=================================================================================================================================================
 
-tTreeError DerCtor(tDerivator* der) {       //WARNING - как быть с конструктором:
-    assert(der != NULL);                    //Чем заполнять нулевую/фиктивную ноду?
+tTreeError DerCtor(tDerivator* der) {
+    assert(der != NULL);
 
     tData init_data;
-    init_data.code = kMul;
-    der->root = CreateNode(kOperation, init_data, NULL);    //Как использовать фиктивную ноду?
+    init_data.value = kPoisonValue;
+    der->root = CreateNode(kConst, init_data, NULL);
 
     der->constants = (double*)calloc(kConstsCount + 1, sizeof(double)); //+1 caused by indexation
     der->size = kInitialDerivatorSize;
@@ -75,6 +75,17 @@ tTreeError DerDtor (tDerivator* der) {
 
 //=================================================================================================================================================
 
+tDerivator* CopyDer(tDerivator* src_der) {
+    tDerivator* ret_der = {};
+    DerCtor(ret_der);
+    ret_der->root->left = CopyNode(src_der->root->left);
+    ret_der->size = src_der->size;
+    memcpy(ret_der->constants, src_der->constants, kConstsCount + 1);   // Caused by indeation
+    return ret_der;
+}
+
+//=================================================================================================================================================
+
 tNode* CopyNode(tNode* source) {
     if (source == NULL) return NULL;
 
@@ -85,7 +96,7 @@ tNode* CopyNode(tNode* source) {
         return NULL;
     }
 
-    copy_node->left = CopyNode(source->left);
+    copy_node->left  = CopyNode(source->left);
     copy_node->right = CopyNode(source->right);
 
     if(copy_node->left != NULL) copy_node->left->parent = copy_node;
@@ -96,16 +107,18 @@ tNode* CopyNode(tNode* source) {
 
 //=================================================================================================================================================
 
-char* OperationDecoder(int code) {      //TODO - Доделать
+const char* OperationDecoder(int code) {
     if (code < 0 || code > kOperationsAmount) {
         fprintf(stderr, "Error: incorrect code was given to OperationDecoder\n");
         return NULL;
     }
 
-    char* op_storage[] = {
+    static const char* const op_storage[] = {
         "+", "-", "*", "/", "^", "sin",
         "cos", "exp", "tg", "ctg", "ln",
-        "sh", "ch", "tgh", "ctgh"
+        "sh", "ch", "tgh", "ctgh", "arcsin",
+        "arccos", "arctg", "arcctg", "arcsh",
+        "arcch", "arcth", "arccth"
     };
     return op_storage[code - 1]; //-1 caused by indexation
 }
@@ -115,7 +128,7 @@ char* OperationDecoder(int code) {      //TODO - Доделать
 char VariableDecoder(int code) {
     if (code < 0 || code > kVariablesAmount) {
         fprintf(stderr, "Error: incorrect code was given to VariableDecoder\n");
-        return '\0';                                                    //WARNING - хуйня или нет?
+        return '\0';
     }
 
     const char var_storage[] = {
@@ -129,6 +142,13 @@ char VariableDecoder(int code) {
 bool IsBiargument(int code) {
     if (code >= kPlus && code <= kPow) return true;
     else return false;
+}
+
+//=================================================================================================================================================
+
+bool CompareDouble(double first, double second) {
+    if (fabs(first - second) < EPSILON) return true;
+    return false;
 }
 
 //=================================================================================================================================================

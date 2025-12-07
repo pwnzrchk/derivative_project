@@ -5,7 +5,6 @@
 
 static tTreeError BeginTex(FILE* file);
 static tTreeError EndTex(FILE* file);
-static tTreeError NodeTex(tNode* node, FILE* file);
 static tTreeError OneargumentTex(tNode* node, FILE* file);
 static tTreeError BiargumentTex(tNode* node, FILE* file);
 
@@ -15,12 +14,12 @@ tTreeError TexDump(tDerivator* der, const char* filename) {
     assert(filename != NULL);
 
     FILE* file = fopen(filename, "w");
-    if (file == NULL) return kNullPointer; //WARNING - can i use (file) and (!file)?
+    if (!file) return kNullPointer; 
 
     tTreeError error_for_all = kNoErrors;
 
     if ((error_for_all = BeginTex(file)) != kNoErrors) return error_for_all;  //В макрос
-    if ((error_for_all = NodeTex (der->root, file)) != kNoErrors) return error_for_all;
+    if ((error_for_all = NodeTex (der->root->left, file)) != kNoErrors) return error_for_all;
     if ((error_for_all = EndTex  (file)) != kNoErrors) return error_for_all;
 
     return kNoErrors;
@@ -65,12 +64,13 @@ static tTreeError EndTex(FILE* file) {
 
 //=================================================================================================================================================
 
-static tTreeError NodeTex(tNode* node, FILE* file) {
+tTreeError NodeTex(tNode* node, FILE* file) {
     assert(file != NULL);
     assert(node != NULL);
 
     if (file == NULL) return kNullPointer;
     if (node == NULL) return kNullPointer;
+
 
     if (node->type == kConst) {
         fprintf(file, "%.2lf", node->data.value);
@@ -109,6 +109,18 @@ static tTreeError NodeTex(tNode* node, FILE* file) {
 }
 
 //=================================================================================================================================================
+
+tTreeError TexPrint(const char* str, FILE* file) {
+    assert(file);
+    assert(str);
+
+    if (!str)  return kNullPointer;
+    if (!file) return kNullPointer;
+
+    fprintf(file, "%s", str);
+
+    return kNoErrors;
+}
 
 //=================================================================================================================================================
 
@@ -271,3 +283,5 @@ static tTreeError OneargumentTex(tNode* node, FILE* file) {
 }
 
 //=================================================================================================================================================
+
+bool IsPriorityHighre(tNode* node) {}

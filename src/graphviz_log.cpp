@@ -19,7 +19,7 @@ static void PrintNodes(tNode* ref_node, FILE* log_file) {
     if (ref_node->type == kConst)     color = "#C2FFAD";
 
     if (ref_node->type == kOperation) {
-        char* operation = OperationDecoder(ref_node->data.code);
+        const char* operation = OperationDecoder(ref_node->data.code);
         fprintf(log_file, "\tNode%p [shape = Mrecord, style = \"rounded\", color = \"%s\", fontcolor = \"%s\", label= \"{ {<p_parent> parent: %p} | {address: %p} "
                           "| {type: \\\"%s\\\"} | { data: \\\"%s\\\" } | {<p_left> left: %p | <p_right> right: %p} } \"];\n",
                 ref_node, color, font_color, (ref_node->parent), ref_node, "Operation",  operation, (ref_node->left), (ref_node->right));

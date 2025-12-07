@@ -37,6 +37,7 @@
 tNode* MakeNode(int op_code, tNode* left, tNode* right);
 tNode* Differentiator (tNode* node);
 tNode* MakeNum(double value);
+tNode* MakeVar(int code);
 
 double NodeCaltor(tDerivator* der, tNode* node);
 

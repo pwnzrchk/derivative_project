@@ -1,8 +1,9 @@
 #include "math_func.h"
 #include <ctype.h>
 //WARNING Фиктовная нода справа всегда - договоренность
+//Корневая нода - фиктивная, первая нода дерева - левая нода корня
 //=================================================================================================================================================
-//WARNING - это же в макрос не нужно? пизды получу за нутеллу ряльна
+
 static tNode* DiffPlus (tNode* node);
 static tNode* DiffMinus(tNode* node);
 static tNode* DiffMul  (tNode* node);
@@ -18,8 +19,17 @@ static tNode* DiffSh   (tNode* node);
 static tNode* DiffCh   (tNode* node);
 static tNode* DiffTgh  (tNode* node);
 static tNode* DiffCtgh (tNode* node);
+static tNode* DiffArcSin(tNode* node);
+static tNode* DiffArcCos(tNode* node);
+static tNode* DiffArcTg (tNode* node);
+static tNode* DiffArcCtg(tNode* node);
+static tNode* DiffArcSh (tNode* node);
+static tNode* DiffArcCh (tNode* node);
+static tNode* DiffArcTh (tNode* node);
+static tNode* DiffArcCth(tNode* node);
 
-static tNode* (*dif_func[kOperationsAmount + 1])(tNode* node) = {     //+1 caused by indexation
+typedef tNode* (*tDiffFuncPtr)(tNode* node);
+static tDiffFuncPtr dif_func[kOperationsAmount + 1] = {     //+1 caused by indexation
     NULL,
     DiffPlus,
     DiffMinus,
@@ -35,11 +45,19 @@ static tNode* (*dif_func[kOperationsAmount + 1])(tNode* node) = {     //+1 cause
     DiffSh,
     DiffCh,
     DiffTgh,
-    DiffCtgh
+    DiffCtgh,
+    DiffArcSin,
+    DiffArcCos,
+    DiffArcTg,
+    DiffArcCtg,
+    DiffArcSh,
+    DiffArcCh,
+    DiffArcTh,
+    DiffArcCth
 };
 
 //=================================================================================================================================================
-//WARNING - это же в макрос не нужно
+
 static double PlusOp (tDerivator* der, tNode* node);
 static double MinusOp(tDerivator* der, tNode* node);
 static double MulOp  (tDerivator* der, tNode* node);
@@ -55,8 +73,17 @@ static double ShOp   (tDerivator* der, tNode* node);
 static double ChOp   (tDerivator* der, tNode* node);
 static double TghOp  (tDerivator* der, tNode* node);
 static double CtghOp (tDerivator* der, tNode* node);
+static double ArcSinOp(tDerivator* der, tNode* node);
+static double ArcCosOp(tDerivator* der, tNode* node);
+static double ArcTgOp (tDerivator* der, tNode* node);
+static double ArcCtgOp(tDerivator* der, tNode* node);
+static double ArcSh   (tDerivator* der, tNode* node);
+static double ArcCh   (tDerivator* der, tNode* node);
+static double ArcTh   (tDerivator* der, tNode* node);
+static double ArcCth  (tDerivator* der, tNode* node);
 
-static double (*math_func[kOperationsAmount + 1])(tDerivator* der, tNode* node) = {
+typedef double (*tMathFuncPtr)(tDerivator* der, tNode* node);
+static const tMathFuncPtr math_func[kOperationsAmount + 1] = {
     NULL,
     PlusOp,
     MinusOp,
@@ -72,7 +99,15 @@ static double (*math_func[kOperationsAmount + 1])(tDerivator* der, tNode* node) 
     ShOp,
     ChOp,
     TghOp,
-    CtghOp
+    CtghOp,
+    ArcSinOp,
+    ArcCosOp,
+    ArcTgOp,
+    ArcCtgOp,
+    ArcSh,
+    ArcCh,
+    ArcTh,
+    ArcCth
 };
 
 //=================================================================================================================================================
@@ -99,7 +134,7 @@ double NodeCaltor(tDerivator* der, tNode* node) {    //WARNING вынести м
 
 //=================================================================================================================================================
 
-static double PlusOp (tDerivator* der, tNode* node) {   //WARNING - Делать ли сравнение даблов и если говно-нода высирать говно?
+static double PlusOp (tDerivator* der, tNode* node) {
     return L + R;
 }
 
@@ -159,10 +194,42 @@ static double CtghOp (tDerivator* der, tNode* node) {
     return 1/tanh(L);
 }
 
+static double ArcSinOp (tDerivator* der, tNode* node) {
+    return asin(L);
+}
+
+static double ArcCosOp (tDerivator* der, tNode* node) {
+    return acos(L);
+}
+
+static double ArcTgOp (tDerivator* der, tNode* node) {
+    return atan(L);
+}
+
+static double ArcCtgOp (tDerivator* der, tNode* node) {
+    return M_PI_2 - atan(L);
+}
+
+static double ArcSh (tDerivator* der, tNode* node) {
+    return asinh(L);
+}
+
+static double ArcCh (tDerivator* der, tNode* node) {
+    return acosh(L);
+}
+
+static double ArcTh (tDerivator* der, tNode* node) {
+    return atanh(L);
+}
+
+static double ArcCth (tDerivator* der, tNode* node) {
+    return atanh(1/L);
+}
+
 //=================================================================================================================================================
 
 tNode* Differentiator (tNode* node) {
-    // int code = VariableCode(var); //TODO - дифференциирование по переменной
+    // int code = VariableCode(var);                        //TODO - дифференциирование по переменной
     if (node->type == kConst) return MakeNum(0);
 
     if (node->type == kVariable) {
@@ -197,6 +264,22 @@ int VariableCode(char var) {
 
 //=================================================================================================================================================
 
+tNode* MakeVar(int var_code) {
+    if (var_code <= 1 || var_code > kVariablesAmount) {     // 1 caused by enumeration of variables
+        ERPRINT("Incorrect input code in makevar\n");
+        return NULL;
+    }
+
+    tData data;
+    data.code = var_code;
+    tNode* ret_node = CreateNode(kVariable, data, NULL);
+    if (ret_node == NULL) ERPRINT("Error creating node\n");
+
+    return ret_node;
+}
+
+//=================================================================================================================================================
+
 tNode* MakeNum(double value) {
     tData data;
     data.value = value;
@@ -217,7 +300,7 @@ tNode* MakeNode(int op_code, tNode* left, tNode* right) {
         return NULL;
     }
 
-    node->left = left;
+    node->left  = left;
     node->right = right;
 
     if(left != NULL) left->parent = node;
@@ -250,7 +333,7 @@ static tNode* DiffDiv(tNode* node) {
     return DIV(nominator, denominator);
 }
 
-static tNode* DiffPow(tNode* node) {        //Переделать TODO
+static tNode* DiffPow(tNode* node) {
     tNode* pow_mul  = POW(cL, cR);
 
     tNode* frst_smmnd = MUL(LN(cL), dR);
@@ -316,7 +399,66 @@ static tNode* DiffCtgh(tNode* node) {
     return MUL(neg_pow_sh, diff_arg);
 }
 
+static tNode* DiffArcSin(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* difference  =  SUB(NUM(1), powered_arg);
+    tNode* diff = POW(difference, NUM(-0.5));
+    return MUL(diff, dL);
+}
 
-//=================================================================================================================================================
+static tNode* DiffArcCos(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* difference  = SUB(NUM(1), powered_arg);
+    tNode* diff = POW(difference, NUM(-0.5));
+    tNode* neg_diff = MUL(diff, NUM(-1));
+    return MUL(neg_diff, dL);
+}
+
+static tNode* DiffArcTg(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* summ = ADD(NUM(1), powered_arg);
+    tNode* pow  = POW(summ, NUM(-1));
+    return MUL(pow, dL);
+}
+
+static tNode* DiffArcCtg(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* summ  = ADD(NUM(1), powered_arg);
+    tNode* pow  = POW(summ, NUM(-1));
+    tNode* neg_diff = MUL(pow, NUM(-1));
+    return MUL(neg_diff, dL);
+}
+
+static tNode* DiffArcSh(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* sum  = ADD(powered_arg, NUM(1));
+    tNode* diff = POW(sum, NUM(-0.5));
+    return MUL(diff, dL);
+}
+
+static tNode* DiffArcCh(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* sub  = SUB(powered_arg, NUM(1));
+    tNode* diff = POW(sub, NUM(-0.5));
+    return MUL(diff, dL);
+}
+
+static tNode* DiffArcTh(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* sub  = SUB(NUM(1), powered_arg);
+    tNode* diff = POW(sub, NUM(-1));
+    return MUL(diff, dL);
+}
+
+static tNode* DiffArcCth(tNode* node) {
+    tNode* powered_arg =  POW(cL, NUM(2));
+    tNode* sub  = SUB(NUM(1), powered_arg);
+    tNode* diff = POW(sub, NUM(-1));
+    return MUL(diff, dL);
+}
+
+
+
+
 
 //=================================================================================================================================================
