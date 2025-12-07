@@ -41,9 +41,10 @@ static tNode* GetFunction(char* buffer, size_t* index) {
     if(isalpha(buffer[*index]) == true) {
         int func_code = OperationCode(buffer, index);
         if (func_code == 0) return NULL;
-
         if (buffer[*index] != '(') return NULL;
-        tNode* exp_node = GetExpression(buffer, index);
+        // (*index)++;
+
+        tNode* exp_node = GetPriority(buffer, index);
         if (exp_node == NULL) return NULL;
 
         return MakeNode(func_code, exp_node, NULL);

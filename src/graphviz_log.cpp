@@ -144,10 +144,9 @@ static void PrintHtml(const char* html_filename, const char* png_filename) {
 
 //=================================================================================================================================================
 
-void GraphDump(tDerivator* der, const char* dot_file_name, const char* png_file_name, const char* html_filename) {
+void GraphDump(tDerivator* der, const char* dot_file_name, const char* png_file_name) {
     assert(dot_file_name != NULL);
     assert(png_file_name != NULL);
-    assert(html_filename != NULL);
     assert(der != NULL);
 
     FILE* log_file = fopen(dot_file_name, "w");
@@ -164,7 +163,6 @@ void GraphDump(tDerivator* der, const char* dot_file_name, const char* png_file_
     fclose(log_file);
 
     CreateGraphImage(dot_file_name, png_file_name);
-    PrintHtml(html_filename, png_file_name);
     return;
 }
 

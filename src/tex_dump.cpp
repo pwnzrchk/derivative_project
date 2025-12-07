@@ -1,12 +1,23 @@
 #include "tex_dump.h"
 #include <stdbool.h>
 
+// static const char* const phrases[] = {"Нетрудо заметить что:",
+//                                "Это мошъит",
+//                                "Petrovich gromko pisaet"
+//                               };
+//
+// static int global_index = 0;
+
 //=================================================================================================================================================
 
 static tTreeError BeginTex(FILE* file);
 static tTreeError EndTex(FILE* file);
+
 static tTreeError OneargumentTex(tNode* node, FILE* file);
 static tTreeError BiargumentTex(tNode* node, FILE* file);
+
+static bool IsPriorityHigher(tNode* node);
+static int FindPriority(int code);
 
 //=================================================================================================================================================
 
@@ -14,16 +25,30 @@ tTreeError TexDump(tDerivator* der, const char* filename) {
     assert(filename != NULL);
 
     FILE* file = fopen(filename, "w");
-    if (!file) return kNullPointer; 
+    if (!file) return kNullPointer;
 
     tTreeError error_for_all = kNoErrors;
 
-    if ((error_for_all = BeginTex(file)) != kNoErrors) return error_for_all;  //В макрос
-    if ((error_for_all = NodeTex (der->root->left, file)) != kNoErrors) return error_for_all;
-    if ((error_for_all = EndTex  (file)) != kNoErrors) return error_for_all;
+    if ((error_for_all = BeginTex(file)) != kNoErrors)      return error_for_all;  //В макрос
+    if ((error_for_all = TreeDump(der, file)) != kNoErrors) return error_for_all;
+    if ((error_for_all = EndTex  (file)) != kNoErrors)      return error_for_all;
 
     return kNoErrors;
     }
+
+//=================================================================================================================================================
+
+tTreeError TreeDump(tDerivator* der, FILE* file) {
+    assert(file);
+    assert(der);
+
+    tTreeError err_for_print = kNoErrors;
+    TexPrint("Petrovich pisaet", file);
+    if ((err_for_print = NodeTex(der->root->left, file)) != kNoErrors) return err_for_print;
+
+    return kNoErrors;
+
+}
 
 //=================================================================================================================================================
 
@@ -127,75 +152,50 @@ tTreeError TexPrint(const char* str, FILE* file) {
 //=================================================================================================================================================
 
 static tTreeError BiargumentTex(tNode* node, FILE* file) {
+    bool flag_of_quotes = IsPriorityHigher(node);
+    if (flag_of_quotes) fprintf(file, "(");
 
     switch(node->data.code) {
 
         case kPlus:
-            fprintf(file, "(");
-            // fprintf(file, "(");
             NodeTex(node->left, file);
-            // fprintf(file, ")");
-
             fprintf(file, " \\ + \\ ");
-
-            // fprintf(file, "(");
             NodeTex(node->right, file);
-            // fprintf(file, ")");
-            fprintf(file, ")");
-
             break;
 
         case kMinus:
-
-            fprintf(file, "( ");
             NodeTex(node->left, file);
-            // fprintf(file, ")");
-
             fprintf(file, " \\ - \\ ");
-
-            // fprintf(file, "(");
             NodeTex(node->right, file);
-            fprintf(file, " )");
-
-
             break;
 
         case kMul:
-            fprintf(file, "( ");
             NodeTex(node->left, file);
-            // fprintf(file, ") ");
-
             fprintf(file, " \\ * \\ ");
-
-            // fprintf(file, "(");
             NodeTex(node->right, file);
-            fprintf(file, " )");
 
             break;
 
         case kDiv:
-            // fprintf(file, "( ");
             fprintf(file, "\\frac{ ");
             NodeTex(node->left, file);
             fprintf(file, " }{ ");
             NodeTex(node->right, file);
             fprintf(file, " }");
-            // fprintf(file, " )");
             break;
 
         case kPow:
-            // fprintf(file, "( ");
             fprintf(file, "{ ");
             NodeTex(node->left, file);
             fprintf(file, " }^{ ");
             NodeTex(node->right, file);
             fprintf(file, " }");
-            // fprintf(file, " )");
             break;
 
         default:
             return kOneArgWrongCode;
     }
+    if (flag_of_quotes) fprintf(file, ")");
     return kNoErrors;
 
 }
@@ -273,6 +273,52 @@ static tTreeError OneargumentTex(tNode* node, FILE* file) {
             NodeTex(node->left, file);
             fprintf(file, " } )");
 
+        case kArcSin:
+            fprintf(file, "arcsin({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
+
+
+        case kArcCos:
+            fprintf(file, "arccos({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
+            break;
+
+        case kArcTg:
+            fprintf(file, "arctg({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
+            break;
+
+        case kArcCtg:
+            fprintf(file, "arcctg({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
+            break;
+
+        case kArcSh:
+            fprintf(file, "arcsh({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
+            break;
+
+        case kArcCh:
+            fprintf(file, "arcch({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
+            break;
+
+        case kArcTh:
+            fprintf(file, "arcth({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
+            break;
+
+        case kArcCth:
+            fprintf(file, "arccth({ ");
+            NodeTex(node->left, file);
+            fprintf(file, " } )");
             break;
 
         default:
@@ -284,4 +330,42 @@ static tTreeError OneargumentTex(tNode* node, FILE* file) {
 
 //=================================================================================================================================================
 
-bool IsPriorityHighre(tNode* node) {}
+static int FindPriority(int code) {
+    if (code == kPlus || code == kMinus) return 1;
+    if (code == kMul  || code == kDiv)   return 2;
+    if (code == kPow) return 3;
+
+    return 0;
+}
+
+//=================================================================================================================================================
+// Если приоритет родитяля выше -> печатаем
+static bool IsPriorityHigher(tNode* node) {
+    assert(node != NULL);
+    if (!node->parent) return false;
+
+    int par_code = FindPriority(node->parent->data.code);
+    int node_code = FindPriority(node->data.code);
+
+    if (par_code > node_code) return true;
+    return false;
+}
+
+//=================================================================================================================================================
+
+int LatexToPdf(const char* tex_filename) {
+    assert(tex_filename);
+
+    char sys_command[kSysCommandSize];
+    snprintf(sys_command, sizeof(sys_command), "pdflatex %s", tex_filename);
+
+    int result = system(sys_command);
+
+    if (result != 0) {
+        ERPRINT("Error in generatint sys_command for Latex\n");
+    }
+
+    return result;
+}
+
+//=================================================================================================================================================

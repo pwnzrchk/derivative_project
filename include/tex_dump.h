@@ -7,9 +7,15 @@
 
 //=================================================================================================================================================
 
+static const int kSysCommandSize = 256;
+
+//=================================================================================================================================================
+
 tTreeError TexDump(tDerivator* der, const char* filename);
+tTreeError TreeDump(tDerivator* der, FILE* file);
 tTreeError NodeTex(tNode* node, FILE* file);
 tTreeError TexPrint(const char* str, FILE* file);
+int LatexToPdf(const char* tex_filename);
 
 //=================================================================================================================================================
 

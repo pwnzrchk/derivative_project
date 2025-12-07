@@ -11,7 +11,7 @@ void RunParserTests() {
     const char* test_expressions[] = {
         "10+2*3",
         "(10+2)*3",
-        "sin(x)*2+cos(y)",
+        "sin(x)/(2+cos(y))",
         "3*4*5",
         "12/3/2",
         "10-5+3",
@@ -45,7 +45,7 @@ void RunParserTests() {
             sprintf(png_buf, "files/parser_test_%d.png", i);
             sprintf(tex_buf, "files/parser_test_%d.tex", i);
 
-            GraphDump(&temp_der, dot_buf, png_buf, "files/parser_report.html");
+            GraphDump(&temp_der, dot_buf, png_buf);
             TexDump(&temp_der, tex_buf);
             printf("Dump created: %s\n", png_buf);
 

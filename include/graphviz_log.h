@@ -12,7 +12,7 @@
 static const int kMaxCommandLen = 128;
 
 
-void GraphDump(tDerivator* der, const char* dot_file_name, const char* png_file_name, const char* html_filename);
+void GraphDump(tDerivator* der, const char* dot_file_name, const char* png_file_name);
 //=================================================================================================================================================
 
 #endif // GRAPHVIZ_LOG_H
