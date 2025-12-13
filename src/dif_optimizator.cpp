@@ -6,21 +6,17 @@
 static tTreeError ReplaceNode(tNode* source, tNode* replacement);
 static size_t DerivatorSize(tDerivator* der);
 
-static void ConstFolding(tDerivator* der, tNode* node);
-static void PowFolding(tDerivator* der, tNode* node);
-static void MulFolding(tDerivator* der, tNode* node);
-static void PlusMinusFolding(tDerivator* der, tNode* node);
-static void DivFolding(tDerivator* der, tNode* node);
+static void ConstFolding(tNode* node);
+static void PowFolding(tNode* node);
+static void MulFolding(tNode* node);
+static void PlusMinusFolding(tNode* node);
+static void DivFolding(tNode* node);
 
 static void TreeSize(tNode* node, size_t* curr_size);
 static tNode* Optor (tDerivator* der, tNode* node);
 
 static bool EqualConstValue(tNode* node, double value);
-
 static bool IsOperation(tNode* node);
-
-// static bool IsVariable(tNode* node);
-
 static bool IsConst(tNode* node);
 
 //================================================================================================================================================================================
@@ -69,10 +65,10 @@ static tNode* Optor(tDerivator* der, tNode* node) {
     if (node == NULL) return NULL;
 
     ConstFolding(der, node);
-    if (IsOperation(node) && node->data.code  == kPow) PowFolding(der, node);
-    if (IsOperation(node) && node->data.code  == kMul) MulFolding(der, node);
-    if (IsOperation(node) && (node->data.code == kPlus || node->data.code == kMinus)) PlusMinusFolding(der, node);
-    if (IsOperation(node) && node->data.code  == kDiv) DivFolding(der, node);
+    if (IsOperation(node) && node->data.code  == kPow) PowFolding(node);
+    if (IsOperation(node) && node->data.code  == kMul) MulFolding(node);
+    if (IsOperation(node) && (node->data.code == kPlus || node->data.code == kMinus)) PlusMinusFolding(node);
+    if (IsOperation(node) && node->data.code  == kDiv) DivFolding(node);
 
     Optor(der, node->left);
     Optor(der, node->right);
@@ -88,7 +84,6 @@ static tTreeError ReplaceNode(tNode* source, tNode* replacement) { // WARNING - 
 
     if (source == NULL)         return kNullPointer;
     if (replacement == NULL)    return kNullPointer;
-    // if (source->parent == NULL) return kNullPointer;             // WARNING
 
     if (replacement->parent == source) {
         if (source->left == replacement)  source->left = NULL;
@@ -142,8 +137,7 @@ static bool EqualConstValue(tNode* node, double value) {
     return CompareDouble(node->data.value, value);
 }
 
-static void PowFolding(tDerivator* der, tNode* node) {
-    assert(der != NULL);
+static void PowFolding(tNode* node) {
     assert(node != NULL);
 
     assert(node->left != NULL);
@@ -175,8 +169,7 @@ static void PowFolding(tDerivator* der, tNode* node) {
 
 //================================================================================================================================================================================
 
-static void MulFolding(tDerivator* der, tNode* node) {
-    assert(der != NULL);
+static void MulFolding(tNode* node) {
     assert(node != NULL);
 
     if(node->left == NULL || node->right == NULL) return;
@@ -198,15 +191,9 @@ static void MulFolding(tDerivator* der, tNode* node) {
 }
 
 //================================================================================================================================================================================
-
-static void PlusMinusFolding(tDerivator* der, tNode* node) {
-    assert(der != NULL);
+// TODO - проверка на NULL
+static void PlusMinusFolding(tNode* node) {
     assert(node != NULL);
-
-    // if (node->left  == NULL || node->right == NULL) {    // WARNING
-    //     // ERRPRINT(nullptr in plusminus folding)
-    //     return;
-    // }
 
     bool is_left_0 = IsConst(node->left) && EqualConstValue(node->left, 0);
     bool is_right_0 = IsConst(node->right) && EqualConstValue(node->right, 0);
@@ -220,12 +207,11 @@ static void PlusMinusFolding(tDerivator* der, tNode* node) {
 
 //================================================================================================================================================================================
 
-static void DivFolding(tDerivator* der, tNode* node) {
-    assert(der != NULL);
+static void DivFolding(tNode* node) {
     assert(node != NULL);
 
     if (node->left  == NULL || node->right == NULL) {
-        ERRPRINT(null-pointer in div folding)
+        ERPRINT("Null pointer in div folding");
         return;
     }
 
@@ -261,7 +247,12 @@ static void TreeSize(tNode* node, size_t* curr_size) {
 static size_t DerivatorSize(tDerivator* der) {
     assert(der);
 
-    size_t counter = 0;
+    if (!der->root || !der->root->left) {       // DEBUG
+        ERPRINT("Null pointer of der.root or der root left");
+        return 1;
+    }
+
+    size_t counter = 1;
     TreeSize(der->root->left, &counter);
 
     return counter;

@@ -12,11 +12,13 @@ static void DeleteNewLine(char* buffer);
 static tCmd GetCmd(char* buffer, int buffer_size);
 
 static tTreeError EnterCmd(tDerivator* der);
+static void SeriesConsole(tDerivator* der);
 static void LatexConsole(tDerivator* der);
 static void GraphConsole(tDerivator* der);
 
 static int graph_counter = 0;
 static int latex_counter = 0;
+static int series_counter = 0;
 
 //================================================================================================================================================================================
 
@@ -70,6 +72,10 @@ tTreeError ConsoleHandler(tDerivator* der) {
             PrintCmds();
             break;
 
+        case kSeriesCmd:
+            SeriesConsole(der);
+            break;
+
         case kUnknownCmd:
             printf("Unknown command. Type \"help\" for assistance.\n");
             break;
@@ -91,6 +97,7 @@ static void PrintHelp(void) {   // TODO - Сделать новое дерево
     printf("  graph     - Create graphviz picture with you're expression.\n");
     printf("  help      - Show help message.\n");
     printf("  funcs     - Show how and what to put in.\n");
+    printf("  series    - Taylor series for you're function.\n");
     printf("  exit      - Exit the program.\n");
     printf("  You can use any register.\n\n");
 }
@@ -131,13 +138,14 @@ static tCmd GetCmd(char* buffer, int buffer_size) {
         buffer[current_symbol] = (char)tolower(buffer[current_symbol]);
     }
 
-    if (strcmp(buffer, kEnter) == 0) return kEnterCmd;
-    if (strcmp(buffer, kDiff)  == 0) return kDiffCmd;
-    if (strcmp(buffer, kLatex) == 0) return kLatexCmd;
-    if (strcmp(buffer, kGraph) == 0) return kGraphCmd;
-    if (strcmp(buffer, kExit)  == 0) return kExitCmd;
-    if (strcmp(buffer, kHelp)  == 0) return kHelpCmd;
-    if (strcmp(buffer, kFncs)  == 0) return kFuncsCmd;
+    if (strcmp(buffer, kEnter) == 0)  return kEnterCmd;
+    if (strcmp(buffer, kDiff)  == 0)  return kDiffCmd;
+    if (strcmp(buffer, kLatex) == 0)  return kLatexCmd;
+    if (strcmp(buffer, kGraph) == 0)  return kGraphCmd;
+    if (strcmp(buffer, kExit)  == 0)  return kExitCmd;
+    if (strcmp(buffer, kHelp)  == 0)  return kHelpCmd;
+    if (strcmp(buffer, kFncs)  == 0)  return kFuncsCmd;
+    if (strcmp(buffer, kSeries) == 0) return kSeriesCmd;
 
     return kUnknownCmd;
 }
@@ -165,9 +173,6 @@ static void LatexConsole(tDerivator* der) {
     TexDump(der, tex_buf);
 
     char* tex_filename = strdup(tex_buf);
-
-    printf("[%s] - filename of file for LatexToPdf\n", tex_filename); // DEBUG
-
     LatexToPdf(tex_filename);   // Обработка ошибок внутри функции
 }
 
@@ -212,3 +217,27 @@ static void DeleteNewLine(char* buffer) {
 
 //===============================================================================================================================================================================
 
+static void SeriesConsole(tDerivator* der) {
+    assert(der);
+
+    if (!der->root->left) {
+        printf("Error: derivator is uninitialized\n");
+        return;
+    }
+
+    char series_buf[kBufferLenth];
+    snprintf(series_buf, kBufferLenth, "files/series_%d.tex", ++series_counter);
+    FILE* file_for_series = fopen(series_buf, "w");
+    if (!file_for_series) {
+        ERPRINT("Error openning TeX file for print series\n");
+        return;
+    }
+    Series(der->root->left, file_for_series);
+    fclose(file_for_series);
+
+    char* series_filename = strdup(series_buf);
+    LatexToPdf(series_filename);
+    return;
+}
+
+//===============================================================================================================================================================================

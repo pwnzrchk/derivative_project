@@ -15,6 +15,10 @@ tTreeError TexDump(tDerivator* der, const char* filename);
 tTreeError TreeDump(tDerivator* der, FILE* file);
 tTreeError NodeTex(tNode* node, FILE* file);
 tTreeError TexPrint(const char* str, FILE* file);
+
+tTreeError BeginTex(FILE* file);
+tTreeError EndTex  (FILE* file);
+
 int LatexToPdf(const char* tex_filename);
 
 //================================================================================================================================================================================

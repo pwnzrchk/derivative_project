@@ -13,6 +13,7 @@ enum tCmd {
     kExitCmd    = 5,
     kGraphCmd   = 6,
     kFuncsCmd   = 7,
+    kSeriesCmd  = 8,
     kUnknownCmd = 10
 };
 
@@ -30,6 +31,7 @@ static const char* const kGraph = "graph";
 static const char* const kExit  = "exit";
 static const char* const kHelp  = "help";
 static const char* const kFncs  = "funcs";
+static const char* const kSeries = "series";
 
 //================================================================================================================================================================================
 

@@ -228,7 +228,7 @@ static double ArcCth (tDerivator* der, tNode* node) {
 
 //================================================================================================================================================================================
 
-tNode* Differentiator (tNode* node) {
+tNode* Differentiator(tNode* node) {
     // int code = VariableCode(var);                        //TODO - дифференциирование по переменной
     if (node->type == kConst) return MakeNum(0);
 
@@ -265,7 +265,7 @@ int VariableCode(char var) {
 //================================================================================================================================================================================
 
 tNode* MakeVar(int var_code) {
-    if (var_code <= 1 || var_code > kVariablesAmount) {     // 1 caused by enumeration of variables
+    if (var_code < 1 || var_code > kVariablesAmount) {     // 1 caused by enumeration of variables
         ERPRINT("Incorrect input code in makevar\n");
         return NULL;
     }

@@ -12,8 +12,6 @@ static size_t global_index = 0;
 
 //================================================================================================================================================================================
 
-static tTreeError BeginTex(FILE* file);
-static tTreeError EndTex  (FILE* file);
 static tTreeError OneargumentTex(tNode* node, FILE* file);
 static tTreeError BiargumentTex (tNode* node, FILE* file);
 
@@ -53,7 +51,7 @@ tTreeError TreeDump(tDerivator* der, FILE* file) {
 
 //================================================================================================================================================================================
 
-static tTreeError BeginTex(FILE* file) {
+tTreeError BeginTex(FILE* file) {
     assert(file != NULL);
 
     if (file == NULL) return kNullPointer;
@@ -73,7 +71,7 @@ static tTreeError BeginTex(FILE* file) {
 
 //================================================================================================================================================================================
 
-static tTreeError EndTex(FILE* file) {
+tTreeError EndTex(FILE* file) {
     assert(file != NULL);
 
     if (file == NULL) return kNullPointer;
