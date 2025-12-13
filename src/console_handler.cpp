@@ -2,23 +2,23 @@
 #include "console_handler.h"
 #include "lib.h"
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static void PrintHelp(void);
 static void PrintCmds(void);
 
-static tCmd GetCmd(char* buffer, int buffer_size);
+static void FlushStdin(void);
 static void DeleteNewLine(char* buffer);
+static tCmd GetCmd(char* buffer, int buffer_size);
 
 static tTreeError EnterCmd(tDerivator* der);
 static void LatexConsole(tDerivator* der);
-static void DeleteNewLine(char* buffer);
 static void GraphConsole(tDerivator* der);
 
 static int graph_counter = 0;
 static int latex_counter = 0;
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 tTreeError ConsoleHandler(tDerivator* der) {
 
@@ -31,8 +31,6 @@ tTreeError ConsoleHandler(tDerivator* der) {
 
     bool flag_of_continue = true;
     char input_buffer[kMaxCommandLength];
-    tTreeError flag_of_error = kNoErrors;
-    int answer_for_saving = false;
 
     while (flag_of_continue) {
         printf("> ");
@@ -41,7 +39,7 @@ tTreeError ConsoleHandler(tDerivator* der) {
         switch(command) {
 
         case kEnterCmd:
-            EnterCmd(der);
+            if (EnterCmd(der) == kNoErrors) printf("Expression read succesfully\n");
             break;
 
         case kDiffCmd:
@@ -73,17 +71,19 @@ tTreeError ConsoleHandler(tDerivator* der) {
             break;
 
         case kUnknownCmd:
+            printf("Unknown command. Type \"help\" for assistance.\n");
+            break;
+
         default:
-            printf("Unknown command. Type 'help' for assistance.\n");
             return kUnkCmd;
         }
     }
     return kNoErrors;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
-static void PrintHelp(void) {   // Сделать новое дерево
+static void PrintHelp(void) {   // TODO - Сделать новое дерево
     printf("\nAvailable commands:\n");
     printf("  enter     - Enter you're expression.\n");
     printf("  diff      - Diffirentiate you're expression(by x).\n");
@@ -97,74 +97,111 @@ static void PrintHelp(void) {   // Сделать новое дерево
 
 
 static void PrintCmds(void) {
-    printf("Aviable functions for input/use:\n");
-    printf("-    Standart ariphmetical - +/-///*\n");
-    printf("-    Powering              - ^(...)\n");
-    printf("-    Standart trigonometry - sin(..)/cos(..) etc\n");
-    printf("-    Extended trigonometry - sh(..)/ch(..) etc\n");
-    printf("-    Standart arc-funcs    - arcsin(..)/arccos(..) etc\n");
-    printf("-    Extended arc-funcs    - arcsh(..)/arcch(..) etc\n");
-    printf("-    Natural logarithm     - ln(...)\n");
+    printf("\nAviable functions for input/use:\n");
+    printf("->    Standart ariphmetical - [ + / - / / / * ]\n");
+    printf("->    Powering              - [^(...)]\n");
+    printf("->    Standart trigonometry - [sin(..) / cos(..)] etc\n");
+    printf("->    Extended trigonometry - [ sh(..) / ch(..) ]etc\n");
+    printf("->    Standart arc-funcs    - [ arcsin(..) / arccos(..) ] etc\n");
+    printf("->    Extended arc-funcs    - [ arcsh(..) / arcch(..) ] etc\n");
+    printf("->    Natural logarithm     - [ ln(...) ]\n");
     printf("Please! Use brackets where it needeed (specified above).\n\n");
 }
 
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tCmd GetCmd(char* buffer, int buffer_size) {
     assert(buffer != NULL);
     assert(buffer_size > 0);
 
-    if (fgets(buffer, buffer_size, stdin) == NULL) return kExitCmd;
-    DeleteNewLine(buffer);
-    //Надо ли флашить stdin?
-
-    char buffer_for_cmd[kBufferSizeForCmd] = "";    // TODO - поработать над оптимальностью
-    sscanf(buffer, FORMAT_STR, buffer_for_cmd);     // универсальностью ввода
-
-    for (size_t current_symbol = 0; current_symbol < sizeof(buffer_for_cmd); current_symbol++) {
-        buffer_for_cmd[current_symbol] = (char)tolower(buffer_for_cmd[current_symbol]);
+    if (scanf(FORMAT_STR, buffer) <= 0) {
+        ERPRINT("Error in reading command\n");
+        return kUnknownCmd;
     }
 
-    if (strcmp(buffer_for_cmd, kEnter) == 0) return kEnterCmd;
-    if (strcmp(buffer_for_cmd, kDiff)  == 0) return kDiffCmd;
-    if (strcmp(buffer_for_cmd, kLatex) == 0) return kLatexCmd;
-    if (strcmp(buffer_for_cmd, kGraph) == 0) return kGraphCmd;
-    if (strcmp(buffer_for_cmd, kExit)  == 0) return kExitCmd;
-    if (strcmp(buffer_for_cmd, kHelp)  == 0) return kHelpCmd;
-    if (strcmp(buffer_for_cmd, kFncs)  == 0) return kFuncsCmd;
+    // char* buffer_for_cmd = (char*)calloc(buffer_size, sizeof(char));
+    // if (fgets(buffer, buffer_size, stdin) == NULL) return kExitCmd;
+    // DeleteNewLine(buffer);
+    //Надо ли флашить stdin?
+    // char buffer_for_cmd[kBufferSizeForCmd] = "";    // TODO - поработать над оптимальностью
+    // sscanf(buffer, FORMAT_STR, buffer_for_cmd);     // универсальностью ввода
+
+    for (size_t current_symbol = 0; current_symbol < sizeof(buffer_size); current_symbol++) {
+        buffer[current_symbol] = (char)tolower(buffer[current_symbol]);
+    }
+
+    if (strcmp(buffer, kEnter) == 0) return kEnterCmd;
+    if (strcmp(buffer, kDiff)  == 0) return kDiffCmd;
+    if (strcmp(buffer, kLatex) == 0) return kLatexCmd;
+    if (strcmp(buffer, kGraph) == 0) return kGraphCmd;
+    if (strcmp(buffer, kExit)  == 0) return kExitCmd;
+    if (strcmp(buffer, kHelp)  == 0) return kHelpCmd;
+    if (strcmp(buffer, kFncs)  == 0) return kFuncsCmd;
 
     return kUnknownCmd;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static void GraphConsole(tDerivator* der) {
     assert(der);
 
     char dot_buf[kBufferLenth], png_buf[kBufferLenth];
     graph_counter++;
-    sprintf(dot_buf, "files/dot_file_%d.dot", graph_counter);
-    sprintf(png_buf, "files/picture_%d.png",  graph_counter);
+    snprintf(dot_buf, kBufferLenth, "files/dot_file_%d.dot", graph_counter);
+    snprintf(png_buf, kBufferLenth, "files/picture_%d.png",  graph_counter);
 
     GraphDump(der, dot_buf, png_buf);
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static void LatexConsole(tDerivator* der) {
     assert(der);
 
     char tex_buf[kBufferLenth];
-    latex_counter++;
-    sprintf(tex_buf, "files/file_%d.tex", latex_counter);
+    snprintf(tex_buf, kBufferLenth, "files/file_%d.tex", ++latex_counter);
     TexDump(der, tex_buf);
 
     char* tex_filename = strdup(tex_buf);
+
+    printf("[%s] - filename of file for LatexToPdf\n", tex_filename); // DEBUG
+
     LatexToPdf(tex_filename);   // Обработка ошибок внутри функции
 }
 
-//=================================================================================================================================================
+//===============================================================================================================================================================================
+
+static tTreeError EnterCmd(tDerivator* der) {
+    printf("Please enter you're expression in input format.\n");
+
+    char* buffer = (char*)calloc(kBufferLenth, sizeof(char));
+    FlushStdin();
+    if (fgets(buffer, kBufferLenth, stdin) == NULL) {
+        ERPRINT("Error getting expression\n");
+        return kFgetsError;
+    }
+    DeleteNewLine(buffer);
+
+    size_t index = 0;
+    der->root->left = GetGeneral(buffer, &index);
+
+    if (!der->root->left) {
+        ERPRINT("Error reading tree");
+        return kUserError;
+    }
+    return kNoErrors;
+}
+
+//===============================================================================================================================================================================
+
+static void FlushStdin(void) {
+    int buffer_cleaner_value = '\0';
+    while ((buffer_cleaner_value = getchar()) != '\n' && buffer_cleaner_value != EOF);
+}
+
+//===============================================================================================================================================================================
 
 static void DeleteNewLine(char* buffer) {
     char* newline_address = strchr(buffer, '\n');
@@ -173,21 +210,5 @@ static void DeleteNewLine(char* buffer) {
     }
 }
 
-//=================================================================================================================================================
+//===============================================================================================================================================================================
 
-static tTreeError EnterCmd(tDerivator* der) {
-    printf("Please enter you're tree in input format.\n");
-
-    char entered_der[kBufferLenth];
-    scanf(FORMAT_STR, entered_der);
-    char* buffer = strdup(entered_der);
-
-    size_t index = 0;
-    der->root->left = GetG(buffer, &index);
-    if (der->root->left) printf("You're expression read succesfull\n");
-
-    return kNoErrors;
-
-}
-
-//=================================================================================================================================================

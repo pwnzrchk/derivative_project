@@ -4,6 +4,7 @@
 #include "graphviz_log.h"
 #include "tex_dump.h"
 #include "parser.h"
+#include "console_handler.h"
 
 void RunParserTests() {
     printf("====== PARSER TESTS ======\n\n");
@@ -30,7 +31,7 @@ void RunParserTests() {
         char* buffer = strdup(test_expressions[i]);
         size_t index = 0;
 
-        tNode* root = GetG(buffer, &index);
+        tNode* root = GetGeneral(buffer, &index);
 
         if (root) {
             printf("Parsing successful!\n");
@@ -41,9 +42,9 @@ void RunParserTests() {
             root->parent = temp_der.root;
 
             char dot_buf[128], png_buf[128], tex_buf[128];
-            sprintf(dot_buf, "files/parser_test_%d.dot", i);
-            sprintf(png_buf, "files/parser_test_%d.png", i);
-            sprintf(tex_buf, "files/parser_test_%d.tex", i);
+            snprintf(dot_buf, 128, "files/parser_test_%d.dot", i);  // FIXME
+            snprintf(png_buf, 128, "files/parser_test_%d.png", i);
+            snprintf(tex_buf, 128, "files/parser_test_%d.tex", i);
 
             GraphDump(&temp_der, dot_buf, png_buf);
             TexDump(&temp_der, tex_buf);
@@ -60,6 +61,10 @@ void RunParserTests() {
 }
 
 int main() {
-    RunParserTests();
+    tDerivator mn_dr = {};
+    tDerivator* main_der = &mn_dr;
+    DerCtor(main_der);
+    ConsoleHandler(main_der);
+    DerDtor(main_der);
     return EXIT_SUCCESS;
 }

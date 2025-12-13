@@ -1,3 +1,4 @@
+#!/bin/make
 CC = g++
 CFLAGS = -Og -ggdb -Wall -std=c++17 -Wall -Wextra -Weffc++ -Wc++14-compat -Wmissing-declarations \
          -Wcast-align -Wcast-qual -Wchar-subscripts -Wconversion -Wctor-dtor-privacy             \
@@ -17,7 +18,8 @@ BUILD_DIR = build
 
 TARGET = derivator
 
-SRCS = src/main.cpp src/dif_tree.cpp src/dif_tree_parser.cpp src/math_func.cpp src/graphviz_log.cpp src/tex_dump.cpp src/dif_optimizator.cpp src/parser.cpp src/functional.cpp console_handler.cpp
+SRCS = src/main.cpp src/dif_tree.cpp src/dif_tree_parser.cpp src/math_func.cpp src/graphviz_log.cpp \
+       src/tex_dump.cpp src/dif_optimizator.cpp src/parser.cpp src/functional.cpp console_handler.cpp
 
 OBJS = $(addprefix $(BUILD_DIR)/, $(notdir $(SRCS:.cpp=.o)))
 
@@ -27,13 +29,13 @@ EXECUTABLE = $(BUILD_DIR)/$(TARGET)
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJS)
-	@echo "Linking project..."
+# 	@echo "Linking project..."
 	@$(CC) $(CFLAGS) $^ -o $@ -lm
 
 
 
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
-	@echo "Compiling $<..."
+# 	@echo "Compiling $<..."
 	@$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
 
@@ -42,7 +44,7 @@ $(BUILD_DIR):
 
 
 clean:
-	@echo "Cleaning build directory..."
+# 	@echo "Cleaning build directory..."
 	@rm -rf $(BUILD_DIR)
 
 

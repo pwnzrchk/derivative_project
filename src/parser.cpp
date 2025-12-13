@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "math_func.h"
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetNumber    (char* buffer, size_t* index);
 static tNode* GetPriority  (char* buffer, size_t* index);
@@ -10,13 +10,15 @@ static tNode* GetVariable  (char* buffer, size_t* index);
 static tNode* GetPow       (char* buffer, size_t* index);
 static tNode* GetTerm      (char* buffer, size_t* index);
 static tNode* GetExpression(char* buffer, size_t* index);
+static size_t SkipSpaces(char* buffer);
 
 static int OperationCode(char* buffer, size_t* index);
 static int VariableCode (char* buffer, size_t* index);
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetNumber (char* buffer, size_t* index) { // TODO maybe strtod
+
     if(isdigit(buffer[*index]) == true) {
         double const_data = 0;
         int data_len = 0;
@@ -35,14 +37,14 @@ static tNode* GetNumber (char* buffer, size_t* index) { // TODO maybe strtod
     return NULL;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetFunction(char* buffer, size_t* index) {
+
     if(isalpha(buffer[*index]) == true) {
         int func_code = OperationCode(buffer, index);
         if (func_code == 0) return NULL;
         if (buffer[*index] != '(') return NULL;
-        // (*index)++;
 
         tNode* exp_node = GetPriority(buffer, index);
         if (exp_node == NULL) return NULL;
@@ -72,9 +74,10 @@ static int OperationCode(char* buffer, size_t* index) {
     return 0;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetVariable(char* buffer, size_t* index) {
+
     if (isalpha(buffer[*index]) == true) {
         int var = VariableCode(buffer, index);
         if (var == 0) return NULL;
@@ -106,7 +109,7 @@ static int VariableCode(char* buffer, size_t* index) {
     return 0;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetPriority (char* buffer, size_t* index) {
 
@@ -114,6 +117,9 @@ static tNode* GetPriority (char* buffer, size_t* index) {
         tNode* ret_node = NULL;
         (*index)++;
         ret_node = GetExpression(buffer, index);
+
+        (*index) += SkipSpaces(buffer + (*index));
+
         if (buffer[*index] != ')') {
             ERPRINT("Missing end quote");
             NodeDtor(ret_node);
@@ -122,6 +128,8 @@ static tNode* GetPriority (char* buffer, size_t* index) {
         (*index)++;
         return ret_node;
     }
+
+    (*index) += SkipSpaces(buffer + (*index));
 
     if(isdigit(buffer[*index]) == true) {
         return GetNumber(buffer, index);
@@ -137,11 +145,14 @@ static tNode* GetPriority (char* buffer, size_t* index) {
     return NULL;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetTerm(char* buffer, size_t* index) {
+
     tNode* left_node = GetPow(buffer, index);
     if(left_node == NULL) return NULL;
+
+    (*index) += SkipSpaces(buffer + (*index));
 
     while(buffer[*index] == '*' || buffer[*index] == '/') {
         int op_code = (buffer[*index] == '*' ? kMul : kDiv);
@@ -159,11 +170,14 @@ static tNode* GetTerm(char* buffer, size_t* index) {
 
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetPow(char* buffer, size_t* index) {
+
     tNode* left_node = GetPriority(buffer, index);
     if (left_node == NULL) return NULL;
+
+    (*index) += SkipSpaces(buffer + (*index));
 
     if(buffer[*index] == '^') {
         (*index)++;
@@ -179,15 +193,18 @@ static tNode* GetPow(char* buffer, size_t* index) {
 
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
 static tNode* GetExpression(char* buffer, size_t* index) {
     tNode* left_node = GetTerm(buffer, index);
     if(left_node == NULL) return NULL;
 
+    (*index) += SkipSpaces(buffer + (*index));
+
     while(buffer[*index] == '+' || buffer[*index] == '-') {
         int op_code = (buffer[*index] == '+' ? kPlus : kMinus);
         (*index)++;
+
         tNode* right_node = GetTerm(buffer, index);
         if (right_node == NULL) {
             ERPRINT("Missing operand after '+' '-' in GetExpression");
@@ -200,21 +217,34 @@ static tNode* GetExpression(char* buffer, size_t* index) {
     return left_node;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
 
-tNode* GetG(char* buffer, size_t* index) {
+tNode* GetGeneral(char* buffer, size_t* index) {
     tNode* ret_node = GetExpression(buffer, index);
     if(ret_node == NULL) {
-        ERPRINT("Syntax error parsing GetG");
+        ERPRINT("Syntax error parsing GetGeneral");
         return NULL;
     }
 
+    (*index) += SkipSpaces(buffer + (*index));
+
+
+
     if(buffer[*index] != '\0') {
-        ERPRINT("Syntax error end-symb in GetG");    // TODO - переделать макрос под строчку
+        ERPRINT("Syntax error end-symb in GetGeneral");
         return NULL;
     }
 
     return ret_node;
 }
 
-//=================================================================================================================================================
+//================================================================================================================================================================================
+
+size_t SkipSpaces(char* buffer) {
+    size_t counter_index = 0;
+    while(*(buffer + counter_index) == ' ') counter_index++;
+    return counter_index;
+}
+
+//================================================================================================================================================================================
+
