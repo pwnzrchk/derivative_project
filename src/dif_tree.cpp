@@ -76,8 +76,7 @@ tTreeError DerDtor (tDerivator* der) {
 //================================================================================================================================================================================
 
 tDerivator* CopyDer(tDerivator* src_der) {
-    tDerivator tmp_der;
-    tDerivator* ret_der = &tmp_der;
+    tDerivator* ret_der = (tDerivator*)calloc(1, sizeof(tDerivator));
     DerCtor(ret_der);
     ret_der->root->left = CopyNode(src_der->root->left);
     ret_der->size = src_der->size;
@@ -100,7 +99,7 @@ tNode* CopyNode(tNode* source) {
     copy_node->left  = CopyNode(source->left);
     copy_node->right = CopyNode(source->right);
 
-    if(copy_node->left != NULL) copy_node->left->parent = copy_node;
+    if(copy_node->left  != NULL) copy_node->left->parent = copy_node;
     if(copy_node->right != NULL) copy_node->right->parent = copy_node;
 
     return copy_node;

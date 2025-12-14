@@ -1,5 +1,4 @@
-#include "dif_optimizator.h"
-#include "math_func.h"
+#include "lib.h"
 
 //================================================================================================================================================================================
 
@@ -63,14 +62,26 @@ tNode* Optor(tDerivator* der, tNode* node) {
 
     if (node == NULL) return NULL;
 
+    Optor(der, node->left);
+    Optor(der, node->right);
+
+    GraphConsole(der);  // DEBUG WARNING
+
+    // tNode* par = node->parent;
+    // bool is_left = par->left == node;
     ConstFolding(der, node);
-    if (IsOperation(node) && node->data.code  == kPow) PowFolding(node);
+    // if (par != NULL) {
+    //     node = is_left ? par->left : par->right;
+    // }
+
+    if ((IsOperation(node) && node->data.code  == kPow) PowFolding(node))
     if (IsOperation(node) && node->data.code  == kMul) MulFolding(node);
     if (IsOperation(node) && (node->data.code == kPlus || node->data.code == kMinus)) PlusMinusFolding(node);
     if (IsOperation(node) && node->data.code  == kDiv) DivFolding(node);
 
-    Optor(der, node->left);
-    Optor(der, node->right);
+    GraphConsole(der);  // DEBUG WARNING
+
+
 
     return node;
 }
@@ -117,6 +128,9 @@ static void ConstFolding(tDerivator* der, tNode* node) {
 
     if (IsConst(node->left) && IsConst(node->right)) {
         double value = NodeCaltor(der, node);
+
+        printf("CONSTFOLDING\n\nAddress of node: [%p]\nValue - [%g]\nCONSTFOLDING\n\n", node, value);   // DEBUG
+
         if (ReplaceNode(node, NUM(value)) != kNoErrors) ERRPRINT(replacing nodes in folding)
     } else if (IsConst(node->left) && node->type == kOperation && !IsBiargument(node->data.code)) {
         double value = NodeCaltor(der, node);
@@ -149,7 +163,7 @@ static void PowFolding(tNode* node) {
         return;
     }
 
-    bool is_left_1  = IsConst(node->left)  && EqualConstValue(node->left, 1);
+    bool is_left_1  = IsConst(node->left)  && EqualConstValue(node->left,  1);
     bool is_right_1 = IsConst(node->right) && EqualConstValue(node->right, 1);
 
     bool is_right_0 = IsConst(node->right) && EqualConstValue(node->right, 0);
@@ -179,14 +193,14 @@ static void MulFolding(tNode* node) {
     bool is_right_1 = IsConst(node->right) && EqualConstValue(node->right, 1);
 
     bool is_left_0  = IsConst(node->left)  && EqualConstValue(node->left, 0);
-    bool is_right_0 = IsConst(node->right) && EqualConstValue(node->right, 1);
+    bool is_right_0 = IsConst(node->right) && EqualConstValue(node->right, 0);
 
 
     if (is_left_1 == true) {
         if (ReplaceNode(node, node->right) != kNoErrors) ERRPRINT(replacing nodes in mul_folding)
     } else if (is_right_1 == true) {
         if (ReplaceNode(node, node->left) != kNoErrors) ERRPRINT(replacing nodes in mul_folding)
-    } else if (is_left_0 == true || is_right_0 == true) {
+    } else if (is_left_0 || is_right_0) {
         if (ReplaceNode(node, NUM(0)) != kNoErrors) ERRPRINT(replacing nodes in mul_folding)
     }
 }

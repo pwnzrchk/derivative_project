@@ -14,7 +14,6 @@ static tCmd GetCmd(char* buffer, int buffer_size);
 static tTreeError EnterCmd(tDerivator* der);
 static void SeriesConsole(tDerivator* der);
 static void LatexConsole(tDerivator* der);
-static void GraphConsole(tDerivator* der);
 
 static int graph_counter = 0;
 static int latex_counter = 0;
@@ -152,7 +151,7 @@ static tCmd GetCmd(char* buffer, int buffer_size) {
 
 //================================================================================================================================================================================
 
-static void GraphConsole(tDerivator* der) {
+void GraphConsole(tDerivator* der) {
     assert(der);
 
     char dot_buf[kBufferLenth], png_buf[kBufferLenth];
@@ -232,7 +231,10 @@ static void SeriesConsole(tDerivator* der) {
         ERPRINT("Error openning TeX file for print series\n");
         return;
     }
-    Series(der, file_for_series);
+    tDerivator* diffed_der = Series(der, file_for_series);
+
+    GraphConsole(diffed_der);   // DEBUG
+
     fclose(file_for_series);
 
     char* series_filename = strdup(series_buf);

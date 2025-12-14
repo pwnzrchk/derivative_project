@@ -65,31 +65,27 @@ tDerivator* Series(tDerivator* der, FILE* file) {
     if (!der || !file) return NULL;
 
     if (BeginTex(file) != kNoErrors) ERPRINT("Error begin series file");
-    tNode* work_node = CopyNode(der->root->left);
+    tDerivator* copy_der = CopyDer(der);
+    copy_der->constants[kX] = 0.0;
     tDerivator* fict_der = CreateFictDer();
 
-for (int rank = 0; rank <= kDiffLimit; rank++) {
-        tNode* summ_node = SeriesSummand(work_node, rank);
-        fict_der->root->left = summ_node;
-        summ_node->parent = fict_der->root;
+    for (int rank = 0; rank <= kDiffLimit; rank++) {
+        tNode* calculated_node = NUM(NodeCaltor(copy_der, copy_der->root->left));
+        fict_der->root->left = SeriesSummand(calculated_node, rank);
+
+        // GraphConsole(fict_der);  // WARNING
+
         DerOptor(fict_der);
-        summ_node = fict_der->root->left;
-        NodeTex(summ_node, file);
         TexPrint("\n\n\\noindent", file);
+        if (fict_der->root->left != NULL) NodeTex(fict_der->root->left, file);
         if (rank != kDiffLimit - 1) fprintf(file, " + ");
-
-        NodeDtor(summ_node);
+        NodeDtor(fict_der->root->left);
         fict_der->root->left = NULL;
-
-        tNode* old_work_node = work_node;
-        work_node = Differentiator(old_work_node);
-        NodeDtor(old_work_node);
+        DerDiffirentiate(copy_der);
     }
-    NodeDtor(work_node);
-    DerDtor(fict_der);
     if (EndTex(file) != kNoErrors) ERPRINT("Error begin series file");
 
-    return der;
+    return copy_der;
 }
 
 //================================================================================================================================================================================
@@ -119,7 +115,6 @@ tDerivator* CreateFictDer(void) {
         return NULL;
     }
     DerCtor(fictive_derivator_ptr);
-    fictive_derivator_ptr->constants[kX] = 0;
 
     return fictive_derivator_ptr;
 }
