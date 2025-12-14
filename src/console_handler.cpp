@@ -158,7 +158,7 @@ static void GraphConsole(tDerivator* der) {
     char dot_buf[kBufferLenth], png_buf[kBufferLenth];
     graph_counter++;
     snprintf(dot_buf, kBufferLenth, "files/dot_file_%d.dot", graph_counter);
-    snprintf(png_buf, kBufferLenth, "files/picture_%d.png",  graph_counter);
+    snprintf(png_buf, kBufferLenth, "files/picture_%d.svg",  graph_counter);
 
     GraphDump(der, dot_buf, png_buf);
 }
@@ -173,7 +173,7 @@ static void LatexConsole(tDerivator* der) {
     TexDump(der, tex_buf);
 
     char* tex_filename = strdup(tex_buf);
-    LatexToPdf(tex_filename);   // Обработка ошибок внутри функции
+    LatexToPdf(tex_filename);
 }
 
 //===============================================================================================================================================================================
@@ -232,7 +232,7 @@ static void SeriesConsole(tDerivator* der) {
         ERPRINT("Error openning TeX file for print series\n");
         return;
     }
-    Series(der->root->left, file_for_series);
+    Series(der, file_for_series);
     fclose(file_for_series);
 
     char* series_filename = strdup(series_buf);

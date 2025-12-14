@@ -8,7 +8,7 @@
 static const int kDiffLimit = 3;
 
 tDerivator* DerDiffirentiate(tDerivator* der);
-tNode* Series(tNode* node, FILE* file);
+tDerivator* Series(tDerivator* der, FILE* file);
 
 //================================================================================================================================================================================
 

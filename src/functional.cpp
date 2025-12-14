@@ -2,12 +2,9 @@
 
 //================================================================================================================================================================================
 
-// static tNode* FactorialOp(const int number);
-
 static tNode* SeriesSummand(tNode* node, double rank);
 static double CalculateFactorial(int depth);
-
-// static tNode* CreateTermNode(double coefficient, int power);
+tDerivator* CreateFictDer(void);
 
 //================================================================================================================================================================================
 
@@ -62,26 +59,37 @@ static double CalculateFactorial(int depth) {
 
 //================================================================================================================================================================================
 
-tNode* Series(tNode* node, FILE* file) {
-    assert(node);
+tDerivator* Series(tDerivator* der, FILE* file) {
+    assert(der);
     assert(file);
-    if (!node || !file) return NULL;
+    if (!der || !file) return NULL;
 
     if (BeginTex(file) != kNoErrors) ERPRINT("Error begin series file");
-    tNode* work_node = CopyNode(node);
-    tDerivator* tmp
+    tNode* work_node = CopyNode(der->root->left);
+    tDerivator* fict_der = CreateFictDer();
 
-    for (int rank = 0; rank <= kDiffLimit; rank++) {
+for (int rank = 0; rank <= kDiffLimit; rank++) {
         tNode* summ_node = SeriesSummand(work_node, rank);
-
+        fict_der->root->left = summ_node;
+        summ_node->parent = fict_der->root;
+        DerOptor(fict_der);
+        summ_node = fict_der->root->left;
         NodeTex(summ_node, file);
+        TexPrint("\n\n\\noindent", file);
         if (rank != kDiffLimit - 1) fprintf(file, " + ");
+
         NodeDtor(summ_node);
-        work_node = Differentiator(work_node);
+        fict_der->root->left = NULL;
+
+        tNode* old_work_node = work_node;
+        work_node = Differentiator(old_work_node);
+        NodeDtor(old_work_node);
     }
+    NodeDtor(work_node);
+    DerDtor(fict_der);
     if (EndTex(file) != kNoErrors) ERPRINT("Error begin series file");
 
-    return node;
+    return der;
 }
 
 //================================================================================================================================================================================
@@ -103,3 +111,15 @@ static tNode* SeriesSummand(tNode* node, double rank) {
 }
 
 //================================================================================================================================================================================
+
+tDerivator* CreateFictDer(void) {
+    tDerivator* fictive_derivator_ptr = (tDerivator*)calloc(1, sizeof(tDerivator));
+    if (fictive_derivator_ptr == NULL) {
+        ERPRINT("Allocation error for fictive_derivator");
+        return NULL;
+    }
+    DerCtor(fictive_derivator_ptr);
+    fictive_derivator_ptr->constants[kX] = 0;
+
+    return fictive_derivator_ptr;
+}

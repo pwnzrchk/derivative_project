@@ -62,10 +62,10 @@ tTreeError BeginTex(FILE* file) {
                   "\\usepackage{geometry}\n"
                   "\\geometry{verbose,a4paper,tmargin=2cm,bmargin=2cm,lmargin=2.5cm,rmargin=1.5cm}\n"
                   "\n\\begin{document}\n");
-
+    fprintf(file, "\\begin{landscape}\n\n");
     const char* const added_phrase = phrases[ global_index++ % (sizeof(phrases)/sizeof(phrases[0])) ];
     TexPrint(added_phrase, file);
-    fprintf(file, "\n\\[ \n");
+    fprintf(file, "\\begin{equation*} \\begin{aligned}\n");
     return kNoErrors;
 }
 
@@ -76,7 +76,8 @@ tTreeError EndTex(FILE* file) {
 
     if (file == NULL) return kNullPointer;
 
-    fprintf(file, "\n\\]\n"
+    fprintf(file, "\n\\end{aligned} \\end{equation*}\n"
+                  "\n\\end{landscape}\n"
                   "\n\\end{document}\n");
 
     return kNoErrors;

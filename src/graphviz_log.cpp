@@ -113,7 +113,7 @@ static void CreateGraphImage(const char* dot_file_name, const char* png_file_nam
 
     char command[kMaxCommandLen];
 
-    snprintf(command, kMaxCommandLen, "dot -Tpng %s -o %s", dot_file_name, png_file_name);
+    snprintf(command, kMaxCommandLen, "dot -Tsvg %s -o %s", dot_file_name, png_file_name);
 
     int result = system(command);
     if (result == 0) {

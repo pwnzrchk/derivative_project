@@ -6,14 +6,13 @@
 static tTreeError ReplaceNode(tNode* source, tNode* replacement);
 static size_t DerivatorSize(tDerivator* der);
 
-static void ConstFolding(tNode* node);
+static void ConstFolding(tDerivator* der, tNode* node);
 static void PowFolding(tNode* node);
 static void MulFolding(tNode* node);
 static void PlusMinusFolding(tNode* node);
 static void DivFolding(tNode* node);
 
 static void TreeSize(tNode* node, size_t* curr_size);
-static tNode* Optor (tDerivator* der, tNode* node);
 
 static bool EqualConstValue(tNode* node, double value);
 static bool IsOperation(tNode* node);
@@ -59,7 +58,7 @@ static bool IsConst(tNode* node) {
 
 //================================================================================================================================================================================
 
-static tNode* Optor(tDerivator* der, tNode* node) {
+tNode* Optor(tDerivator* der, tNode* node) {
     assert(der != NULL);
 
     if (node == NULL) return NULL;
@@ -90,10 +89,12 @@ static tTreeError ReplaceNode(tNode* source, tNode* replacement) { // WARNING - 
         if (source->right == replacement) source->right = NULL;
     }
 
-    if (source == source->parent->left) {
-        source->parent->left = replacement;
-    } else {
-        source->parent->right = replacement;
+    if (source->parent) {
+        if (source == source->parent->left) {
+            source->parent->left = replacement;
+        } else {
+            source->parent->right = replacement;
+        }
     }
     replacement->parent = source->parent;
 
