@@ -285,12 +285,12 @@ int LatexToPdf(const char* tex_filename) {
     snprintf(sys_command, sizeof(sys_command), "pdflatex -interaction=nonstopmode -output-directory=files %s > /dev/null", tex_filename);
     printf("Executing: %s\n", sys_command);
     int result = system(sys_command);
-
-    if (result != 0) {
-        ERPRINT("Error in generating sys_command for Latex");
-    } else {
-        printf("PDF generated successfully.\n");
-    }
+    // TODO - парс ошибки при исполнении 
+    // if (result != 0) {
+    //     ERPRINT("Error in generating sys_command for Latex");
+    // } else {
+    //     printf("PDF generated successfully.\n");
+    // }
 
     return result;
 }

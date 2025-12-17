@@ -130,7 +130,7 @@ static tCmd GetCmd(char* buffer, int buffer_size) {
     // if (fgets(buffer, buffer_size, stdin) == NULL) return kExitCmd;
     // DeleteNewLine(buffer);
     //Надо ли флашить stdin?
-    // char buffer_for_cmd[kBufferSizeForCmd] = "";    // TODO - поработать над оптимальностью
+    // char buffer_for_cmd[kBufferSizeForCmd] = "";    // TODO - оптимизировать и
     // sscanf(buffer, FORMAT_STR, buffer_for_cmd);     // универсальностью ввода
 
     for (size_t current_symbol = 0; current_symbol < sizeof(buffer_size); current_symbol++) {
@@ -231,9 +231,7 @@ static void SeriesConsole(tDerivator* der) {
         ERPRINT("Error openning TeX file for print series\n");
         return;
     }
-    tDerivator* diffed_der = Series(der, file_for_series);
 
-    GraphConsole(diffed_der);   // DEBUG
 
     fclose(file_for_series);
 

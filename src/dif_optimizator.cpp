@@ -17,6 +17,9 @@ static bool EqualConstValue(tNode* node, double value);
 static bool IsOperation(tNode* node);
 static bool IsConst(tNode* node);
 
+
+// static tTreeError Transplant(tNode* source, tNode* replacement);
+
 //================================================================================================================================================================================
 
 //================================================================================================================================================================================
@@ -65,7 +68,7 @@ tNode* Optor(tDerivator* der, tNode* node) {
     Optor(der, node->left);
     Optor(der, node->right);
 
-    GraphConsole(der);  // DEBUG WARNING
+
 
     // tNode* par = node->parent;
     // bool is_left = par->left == node;
@@ -74,12 +77,11 @@ tNode* Optor(tDerivator* der, tNode* node) {
     //     node = is_left ? par->left : par->right;
     // }
 
-    if ((IsOperation(node) && node->data.code  == kPow) PowFolding(node))
+    if (IsOperation(node) && node->data.code  == kPow) PowFolding(node);
     if (IsOperation(node) && node->data.code  == kMul) MulFolding(node);
     if (IsOperation(node) && (node->data.code == kPlus || node->data.code == kMinus)) PlusMinusFolding(node);
     if (IsOperation(node) && node->data.code  == kDiv) DivFolding(node);
 
-    GraphConsole(der);  // DEBUG WARNING
 
 
 
@@ -87,6 +89,16 @@ tNode* Optor(tDerivator* der, tNode* node) {
 }
 
 //================================================================================================================================================================================
+// WARNING - функция вызывает NULL указатель при срабатывании ConstFolding + любая другая оптимизация
+// TODO    - разбить логику, упростить
+/**
+ * @brief Функция усложнена, нужно разбить на отдельную функцию перепривязки родителя + детей - Transplant
+ *        Удаление source оставить функциям Folding'a
+ *
+ * @param source
+ * @param replacement
+ * @return tTreeError
+ */
 
 static tTreeError ReplaceNode(tNode* source, tNode* replacement) { // WARNING - Тут не работает Caller-allocates
     assert(source != NULL);                                        // Не caller удаляет замененную ноду
@@ -129,7 +141,7 @@ static void ConstFolding(tDerivator* der, tNode* node) {
     if (IsConst(node->left) && IsConst(node->right)) {
         double value = NodeCaltor(der, node);
 
-        printf("CONSTFOLDING\n\nAddress of node: [%p]\nValue - [%g]\nCONSTFOLDING\n\n", node, value);   // DEBUG
+        // printf("CONSTFOLDING\n\nAddress of node: [%p]\nValue - [%g]\nCONSTFOLDING\n\n", node, value);   // DEBUG
 
         if (ReplaceNode(node, NUM(value)) != kNoErrors) ERRPRINT(replacing nodes in folding)
     } else if (IsConst(node->left) && node->type == kOperation && !IsBiargument(node->data.code)) {
@@ -275,3 +287,38 @@ static size_t DerivatorSize(tDerivator* der) {
 
 //================================================================================================================================================================================
 
+
+//================================================================================================================================================================================
+//================================================================================================================================================================================
+//================================================================================================================================================================================
+// REFACTOR OPTIMIZATION
+// TODO
+// Функции, упрощающие ReplaceNode
+// static tTreeError Transplant(tNode* source, tNode* replacement) {
+//     if (!source || !replacement) return kNullPointer;
+//
+//     if (source->parent) {
+//         if (source->parent->left == source) source->parent->left = replacement;
+//         else source->parent->right = replacement;
+//     }
+//     replacement->parent = source->parent;
+//     return kNoErrors;
+// }
+//
+// static tNode* FoldConst(tDerivator* der, tNode* node) {
+//     assert(der);
+//     if(node->left == NULL || node->right == NULL) return node;
+//
+//     if (IsConst(node->left) && IsConst(node->right)) {
+//         double value = NodeCaltor(der, node);
+//         tNode* replace_node = NUM(value);
+//
+//         printf("CONSTFOLDING\n\nAddress of node: [%p]\nValue - [%g]\nCONSTFOLDING\n\n", node, value);   // DEBUG
+//
+//         if (Transplant(node, replace_node) != kNoErrors) ERPRINT("Error transplanting nodes");
+//         return;
+//         if (ReplaceNode(node, NUM(value)) != kNoErrors) ERRPRINT(replacing nodes in folding)
+//     }
+//
+//
+// }

@@ -73,8 +73,6 @@ tDerivator* Series(tDerivator* der, FILE* file) {
         tNode* calculated_node = NUM(NodeCaltor(copy_der, copy_der->root->left));
         fict_der->root->left = SeriesSummand(calculated_node, rank);
 
-        // GraphConsole(fict_der);  // WARNING
-
         DerOptor(fict_der);
         TexPrint("\n\n\\noindent", file);
         if (fict_der->root->left != NULL) NodeTex(fict_der->root->left, file);
